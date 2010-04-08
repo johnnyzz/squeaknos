@@ -1,4 +1,7 @@
 *.image
 *.sources
 *.changes
-
+*~
+*.log
+release
+boot/iso.template/platforms/

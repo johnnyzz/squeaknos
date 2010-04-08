@@ -11,8 +11,8 @@ VMOUTDIR = $(BLDDIR)
 
 #SQIMAGE  = Squeak-ESUG
 #SQIMAGE  = Squeak3.8-6665full
-#SQIMAGE = SqueakNOS
-SQIMAGE = PharoNOS
+SQIMAGE = SqueakNOS
+#SQIMAGE = PharoNOS
 
 all: $(VM)
 
