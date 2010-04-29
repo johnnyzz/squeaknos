@@ -6,13 +6,7 @@
 sizeMB=33 # if smaller than this gparted will fail
 generatedFileName="testdata/ExampleFAT32.raw"
 
-size=$(echo $(($sizeMB*1024*1024/512)))                     # set size of disk
-dd if=/dev/zero of=$generatedFileName bs=512 count=$size    # equivalent to: qemu-img create -f raw harddisk.img 100M
-parted $generatedFileName mktable msdos                     # create partition table
-parted $generatedFileName "mkpart primary fat32 1 -0"       # make primary partition, type fat32 from 1 to end
-parted $generatedFileName mkfs y 1 fat32                    # make fat32 filesystem on partition 1, without confirmation
-parted $generatedFileName toggle 1 boot                     # make partition 1 bootable
-parted $generatedFileName unit b print
+./scripts/create-disk.sh $sizeMB $generatedFileName
 
 offset=$(parted $generatedFileName unit b print | tail -2 | head -1 | cut -f 1 --delimit="B" | cut -c 9-) 
 
@@ -48,3 +42,5 @@ echo a >mount/dirlongname/file.txt
 umount ./mount/
 
 losetup -d $loopDevice
+
+

@@ -1,25 +1,48 @@
-#!/bin/sh
+#!/bin/sh -x
 
 # this script installs grub in the image disk passed as parameter
 
 imageFile=$1
 
+if [ $# -eq 0 ]
+then
+	echo Usage: `basename $0` disk-image-file
+	echo Example: `basename $0` disk.img
+	exit
+fi
+
+# first, we copy grub files inside the partition
+
 # get offset, sometimes 512, 16384 or 35226 (512 bytes per unit by 63 cylinders)
 offset=$(parted $imageFile unit b print | tail -2 | head -1 | cut -f 1 --delimit="B" | cut -c 9-) 
 
-echo $offset
-losetup -o $offset /dev/loop5 $imageFile
+echo "Partition offset: ${offset}"
 
-mkdir /tmp/hdd
-mount /dev/loop5 /tmp/hdd/
+loopDevice=$(losetup -f)
+losetup -o $offset $loopDevice $imageFile
 
-mkdir /tmp/hdd/boot
-cp -r boot/iso.template/boot/grub /tmp/hdd/boot
+mkdir ./mount/hdd
+mount -t vfat $loopDevice ./mount/hdd/
 
-umount /tmp/hdd
+mkdir ./mount/hdd/boot
+cp -r boot/iso.template/boot/grub ./mount/hdd/boot
+
+umount ./mount/hdd
+losetup -d $loopDevice
+
+# done copying files, now we have to install grub
+
+losetup $loopDevice $imageFile
+
+echo "(hd0) ${loopDevice}" >/tmp/device_map
+grub-setup --device-map=/tmp/device_map -r "(hd0,1)" "(hd0)"
+
+rm -rf ./mount/hdd
+losetup -d $loopDevice
 
 
+./scripts/raw-to-vmdk.sh disk.img release/bootvacio.vmdk
+./scripts/copy.sh SqueakNOS release/bootvacio.vmdk
 
-#rm -rf /tmp/hdd
-#losetup -d /dev/loop5
+
 
