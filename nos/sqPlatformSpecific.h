@@ -4,6 +4,8 @@
 #define initialHeapSize 30*1024*1024
 sqInt sqMain(void *image);
 
+void enable_paging();
+
 /* undefine clock macros (these are implemented as functions) */
 
 #undef ioMSecs

@@ -34,12 +34,14 @@ void mark(int col) {
 #endif
 }
 
+
 void _main (unsigned long magic, multiboot_info_t *mbi) {
   int i;
   void *image = NULL;
 
+	enable_paging();
   /* Are mods_* valid?  */
-
+	//printf_pocho("Paging has been enabled\n");
   if (magic == MULTIBOOT_BOOTLOADER_MAGIC) {
 	  if (CHECK_FLAG (mbi->flags, 2)) {
 		char *video = (char*)mbi->cmdline;
