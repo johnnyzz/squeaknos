@@ -4,28 +4,35 @@ TARGET = cd
 FLOPPY = img.big.template
 FLOPPY_VMX = vmx.floppy.template
 
-CD = iso.template
 CD_VMX = vmx.cd.template
 
 img=GARCHA.img
 mnt=MONTO.mnt
 
+ifndef SRCDIR
+SRCDIR=..
+endif
+
+BLDDIR= $(SRCDIR)/release
+ISODIR= $(BLDDIR)/iso
+
 all: 
 
 clean:
-	rm -f *.img *.vmx *.vmsd *.vmem *.vmss *.o *.k *.log *.iso nvram
+	rm -rf $(ISODIR)
+	rm -f $(ISODIR) *.img *.vmx *.vmsd *.vmem *.vmss *.o *.k *.log *.iso nvram
 
 %.o: %.s
 	as -o $@ $<
 
 %.o: %.c
-	gcc -o $@ -c $< -Wall -nostdlib
+	gcc -o $(BLDDIR)/$@ -c $< -Wall -nostdlib
 
-%.k: %.o loader.o kernel.ld
-	ld -o $@ -T kernel.ld loader.o $< 
+%.k: $(BLDDIR)/SqueakNOS.obj loader.o kernel.ld
+	ld -o $(BLDDIR)/$@ -T kernel.ld loader.o $< 
 
 %.k: %.elf
-	cp $< $@
+	cp $(BLDDIR)/$< $(BLDDIR)/$@
 
 %.img: %.k $(FLOPPY)
 	cp $(FLOPPY) $(img)
@@ -36,9 +43,10 @@ clean:
 	rmdir $(mnt)
 	mv $(img) $@
 
-%.iso: %.k $(CD) 
-	cp $< $(CD)/SqueakNOS.kernel
-	mkisofs -J -hide-rr-moved -joliet-long -l -r -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $@ $(CD)
+%.iso: %.k 
+	mv $(BLDDIR)/$< $(ISODIR)/SqueakNOS.kernel
+	mkisofs -J -hide-rr-moved -joliet-long -l -r -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $(BLDDIR)/$@ $(ISODIR)
+
 
 .PRECIOUS: %.img
 	
@@ -48,9 +56,9 @@ clean:
 	echo 'floppy0.fileName = "$*.img"' >> $@
 
 %.cd.vmx: %.iso $(CD_VMX)
-	cp $(CD_VMX) $@
-	chmod +x $@
-	echo 'ide0:0.fileName = "$*.iso"' >> $@
+	cp $(CD_VMX) $(BLDDIR)/$@
+	chmod +x $(BLDDIR)/$@
+	echo 'ide0:0.fileName = "$*.iso"' >> $(BLDDIR)/$@
 
 %.try: %.$(TARGET).vmx
 	vmplayer $<

@@ -11,39 +11,38 @@ VMOUTDIR = $(BLDDIR)
 
 #SQIMAGE  = Squeak-ESUG
 #SQIMAGE  = Squeak3.8-6665full
-SQIMAGE = SqueakNOS
+SQIMAGE = SqueakNOS-Squeak4.2
 #SQIMAGE = PharoNOS
 
 all: $(VM)
 
 try: all
-	cp $(SQIMAGE).image boot/iso.template/SqueakNOS.image
-	cp $(SQIMAGE).changes boot/iso.template/SqueakNOS.changes
-	cp $(VMOUTDIR)/$(VM) boot/SqueakNOS.o
-	make -C boot SqueakNOS.try
+	cp $(SQIMAGE).image $(ISODIR)/SqueakNOS.image
+	cp $(SQIMAGE).changes $(ISODIR)/SqueakNOS.changes
+	cp $(VMOUTDIR)/$(VM) $(ISODIR)/boot/SqueakNOS.o
+	make -C $(ISODIR)/boot SqueakNOS.try
 
 iso: all
-	cp $(SQIMAGE).image boot/iso.template/SqueakNOS.image
-	cp $(SQIMAGE).changes boot/iso.template/SqueakNOS.changes
-	cp $(VMOUTDIR)/$(VM) boot/SqueakNOS.o
+	cp -r $(SRCDIR)/boot/grub $(ISODIR)/boot/
+	cp $(SQIMAGE).image $(ISODIR)/SqueakNOS.image
+	cp $(SQIMAGE).changes $(ISODIR)/SqueakNOS.changes
+	cp $(VMOUTDIR)/$(VM) $(BLDDIR)/SqueakNOS.o
 	make -C boot SqueakNOS.iso SqueakNOS.cd.vmx
-	mv boot/SqueakNOS.iso $(BLDDIR)
-	mv boot/SqueakNOS.cd.vmx $(BLDDIR)/SqueakNOS.vmx
+
+
+DISTROEXCLUDES = .git $(BLDDIR) release isorelease bla mount otros testdata backup info sm bootdisk.raw
+EXCLUDESTRING = $(addprefix --exclude platforms/squeaknos/, $(DISTROEXCLUDES))
 
 distro:
-	make clean
 	make -C boot clean
-	rm -rf boot/iso.template/SqueakNOS.*
-	rm -rf boot/iso.template/platforms
-	# cd ../../../ && tar --exclude package-cache --exclude $(BLDDIR)/* --exclude sm --exclude $(SQIMAGE).* --exclude backup -cvf sources.tar trunk/platforms/SqueakNOS trunk/platforms/Cross
-	#cd ../../../ && tar --exclude package-cache --exclude $(BLDDIR)/* --exclude info --exclude sm --exclude $(SQIMAGE).* --exclude backup -cvf sources.tar trunk/platforms/SqueakNOS trunk/platforms/Cross
-	#cd boot/iso.template && tar xvf ../../../../../sources.tar
-	cd ../../ && tar --exclude package-cache --exclude $(BLDDIR)/* --exclude info --exclude sm --exclude $(SQIMAGE).* --exclude backup -cvf sources.tar platforms/SqueakNOS platforms/Cross
-	cd boot/iso.template && tar xvf ../../../../sources.tar
-	rm ../../sources.tar
+	echo $(EXCLUDESTRING)
+	cd ../../ && tar --exclude package-cache $(EXCLUDESTRING) --exclude *.img --exclude *.image --exclude *.changes --exclude .svn --exclude $(SQIMAGE).* -cvf sources.tar platforms/squeaknos platforms/Cross
+	mkdir -p $(ISODIR)
+	cd $(ISODIR) && tar xvf ../../../../sources.tar
 	make iso
-	cd $(BLDDIR) && tar cjvf SqueakNOS-`date +%d-%b-%Y`.tar.bz2 SqueakNOS.iso SqueakNOS.vmx
-	cd $(BLDDIR) && zip -9 SqueakNOS-`date +%d-%b-%Y`.zip SqueakNOS.iso SqueakNOS.vmx
+	rm ../../sources.tar
+	cd $(BLDDIR) && tar cjvf SqueakNOS-`date +%d-%b-%Y`.tar.bz2 SqueakNOS.iso SqueakNOS.cd.vmx
+	cd $(BLDDIR) && zip -9 SqueakNOS-`date +%d-%b-%Y`.zip SqueakNOS.iso SqueakNOS.cd.vmx
 
 AR = ar
 CP = cp
@@ -62,6 +61,7 @@ PLUGIN=.
 endif
 
 BLDDIR= $(SRCDIR)/release
+ISODIR= $(BLDDIR)/iso
 
 ifndef OBJDIR
 OBJDIR= $(BLDDIR)
@@ -144,10 +144,14 @@ libc.o: /usr/lib/libc.a
 gnu-interp.c: interp.c
 	./gnuify $< > $@
 
+
 .ensureRelease:
 	mkdir -p $(BLDDIR)
+	mkdir -p $(ISODIR)
+	mkdir -p $(ISODIR)/boot
 
 ### housekeeping
 clean:
-	make -C boot clean
+#	make -C boot clean
+	-rm -rf $(BLDDIR)/iso
 	-rm -f $(BLDDIR)/* *.iso *.vmx
