@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeLite_Project Name="SqueakNOS" InternalType="Console">
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu gcc" DebuggerType="GNU gdb debugger" Type="" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+  </Settings>
+  <VirtualDirectory Name="nos">
+    <File Name="nos/config.h"/>
+    <File Name="nos/ints.c"/>
+    <File Name="nos/ints.h"/>
+    <File Name="nos/multiboot.h"/>
+    <File Name="nos/nos.c"/>
+    <File Name="nos/ofw.h"/>
+    <File Name="nos/sqConfig.h"/>
+    <File Name="nos/sqGlue.c"/>
+    <File Name="nos/sqGnu.h"/>
+    <File Name="nos/sqMinimal.c"/>
+    <File Name="nos/sqPlatformSpecific.c"/>
+    <File Name="nos/sqPlatformSpecific.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="src32">
+    <File Name="src32/vm/interp.c"/>
+    <File Name="src32/vm/interp.h"/>
+    <File Name="../Cross/vm/sq.h"/>
+    <File Name="../Cross/vm/sqMemoryAccess.h"/>
+    <File Name="../Cross/vm/sqNamedPrims.c"/>
+    <File Name="../Cross/vm/sqVirtualMachine.c"/>
+    <File Name="../Cross/vm/sqVirtualMachine.h"/>
+    <File Name="src32/vm/intplugins/SqueakNOSPlugin/SqueakNOSPlugin.c"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Assembly">
+    <File Name="boot/kernel.ld"/>
+    <File Name="boot/loader.s"/>
+    <File Name="boot/Makefile"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="scripts">
+    <File Name="scripts/create-disk.sh"/>
+    <File Name="scripts/install-grub.sh"/>
+  </VirtualDirectory>
+</CodeLite_Project>
