@@ -27,17 +27,21 @@ sqInt sqImageFileWrite(char *ptr, sqInt sz, sqInt count, sqImageFile f) {
 }
 
 /*** Memory ***/
+// WARNING: This func has a hack, if you look at how is it called the first
+// time (in sqMain below), desiredHeapSize is image file pointer casted to
+// an int, and minHeapSize is -headerSize, made negative to know that it's
+// being called by sqMain.
 
 void * sqAllocateMemory(int minHeapSize, int desiredHeapSize) {
-	static void *image = 0;
+	static void *heap = 0;
 	if (minHeapSize < 0) {
 		// minHeapSize is -headerSize, desiredHeapSize is image
-		// ==> image = image - -headerSize = image+headerSize
-		image = (void*)(desiredHeapSize-minHeapSize);
+		// ==> heap = image - -headerSize = image+headerSize
+		heap = (void*)(desiredHeapSize-minHeapSize);
 		return 0;
 	}
 	/* allocate memory for Squeak object heap. */
-	if (minHeapSize > 1024) return image;
+	if (minHeapSize > 1024) return heap;
 	return 0;
 }
 

@@ -1,7 +1,7 @@
 #ifndef __SQ_PLATFORM_SPECIFIC_H__
 #define __SQ_PLATFORM_SPECIFIC_H__
 
-#define initialHeapSize 30*1024*1024
+#define initialHeapSize 40*1024*1024
 sqInt sqMain(void *image);
 
 void enable_paging();
