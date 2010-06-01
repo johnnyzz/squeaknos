@@ -20,7 +20,7 @@ try: all
 	cp $(SQIMAGE).image $(ISODIR)/SqueakNOS.image
 	cp $(SQIMAGE).changes $(ISODIR)/SqueakNOS.changes
 	cp $(VMOUTDIR)/$(VM) $(ISODIR)/boot/SqueakNOS.o
-	make -C $(ISODIR)/boot SqueakNOS.try
+	make -C boot SqueakNOS.try
 
 iso: all
 	cp -r $(SRCDIR)/boot/grub $(ISODIR)/boot/
@@ -74,7 +74,8 @@ VMSRC = $(filter-out interp.c,$(notdir $(wildcard $(VMDIR2)/*.c) $(wildcard $(VM
 VMOBJ:=	$(VMSRC:.c=.o) gnu-interp.o
 INCS =-I$(VMDIR1) -I$(VMDIR2) -I$(VMDIR3) -I$(SRCDIR)/../Cross/plugins/$(PLUGIN)
 
-LIBSRC = $(wildcard *.c) $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.c)
+# second and third wildcards are hacks so that ffi plugin compiles
+LIBSRC = $(wildcard *.c) $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.c) $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/sqManualSurface*.c)
 LIBSRCS = $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.S)
 LIBOBJ = $(LIBSRC:.c=.o) $(LIBSRCS:.S=.o)
 
@@ -155,3 +156,6 @@ clean:
 #	make -C boot clean
 	-rm -rf $(BLDDIR)/iso
 	-rm -f $(BLDDIR)/* *.iso *.vmx
+
+cleannos:
+	rm  $(BLDDIR)/SqueakNOSPlugin.lib

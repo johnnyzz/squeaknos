@@ -61,6 +61,6 @@ clean:
 	echo 'ide0:0.fileName = "$*.iso"' >> $(BLDDIR)/$@
 
 %.try: %.$(TARGET).vmx
-	vmplayer $<
+	vmplayer $(BLDDIR)/$<
 #	vmware-server-console -m -x -l "`pwd`/$<"
 #	make clean
