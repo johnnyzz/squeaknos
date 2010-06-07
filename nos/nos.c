@@ -6,10 +6,13 @@
 
 #undef DEBUG
 
+
 void initInts();
 
 int errno;
 int *__errno_location = &errno;
+multiboot_info_t *__mbi = 0;
+
 
 int printf_pocho (const char *format, ...);
 static void cls (void);
@@ -40,8 +43,13 @@ void _main (unsigned long magic, multiboot_info_t *mbi)
 {
 	int i;
 	void *image = NULL;
+	
+	// set the memory map that grubs passes (grub gets it by asking the bios) to
+	// a variable we can query from the image by using a primitive
+	__mbi = mbi;
 
 	enable_paging();
+	
 	/* Are mods_* valid?  */
 	//printf_pocho("Paging has been enabled\n");
 	if (magic == MULTIBOOT_BOOTLOADER_MAGIC)
@@ -382,3 +390,4 @@ __assert_fail(const char *assertion,
 	             assertion, file, line, function);
 	exit(0);
 }
+
