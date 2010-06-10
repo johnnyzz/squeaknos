@@ -225,9 +225,17 @@ void console_push_string(Console *console, char string[])
 	console->text[console->text_size] = 0; //just in case strcpy didn't do it.
 }
 
-void output_string(char string[])
+void std_console_put_string(char string[])
 {
 	console_push_string(&console, string);
+	console_draw(&console);
+	
+}
+
+void std_console_put_char(char c)
+{
+	char str[2] = { c, 0 };
+	console_push_string(&console, str);
 	console_draw(&console);
 	
 }
