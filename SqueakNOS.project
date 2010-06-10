@@ -82,6 +82,11 @@
     <File Name="nos/sqMinimal.c"/>
     <File Name="nos/sqPlatformSpecific.c"/>
     <File Name="nos/sqPlatformSpecific.h"/>
+    <File Name="nos/paging.c"/>
+    <File Name="Makefile"/>
+    <File Name="nos/console.c"/>
+    <File Name="nos/fonttex.h"/>
+    <File Name="nos/sqLibc.c"/>
   </VirtualDirectory>
   <VirtualDirectory Name="src32">
     <File Name="src32/vm/interp.c"/>
@@ -91,7 +96,12 @@
     <File Name="../Cross/vm/sqNamedPrims.c"/>
     <File Name="../Cross/vm/sqVirtualMachine.c"/>
     <File Name="../Cross/vm/sqVirtualMachine.h"/>
-    <File Name="src32/vm/intplugins/SqueakNOSPlugin/SqueakNOSPlugin.c"/>
+    <File Name="src32/vm/intplugins/SqueakFFIPrims/SqueakFFIPrims.c"/>
+    <VirtualDirectory Name="Plugins">
+      <File Name="src32/vm/intplugins/SqueakNOSPlugin/SqueakNOSPlugin.c"/>
+      <File Name="../Cross/plugins/SurfacePlugin/SurfacePlugin.c"/>
+      <File Name="../Cross/plugins/SurfacePlugin/SurfacePlugin.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="Assembly">
     <File Name="boot/kernel.ld"/>
@@ -101,5 +111,9 @@
   <VirtualDirectory Name="scripts">
     <File Name="scripts/create-disk.sh"/>
     <File Name="scripts/install-grub.sh"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Cross">
+    <File Name="../Cross/plugins/SqueakFFIPrims/sqFFI.h"/>
+    <File Name="../Cross/plugins/SqueakFFIPrims/sqManualSurface.c"/>
   </VirtualDirectory>
 </CodeLite_Project>
