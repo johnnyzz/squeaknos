@@ -48,26 +48,6 @@ sqInt ioRelinquishProcessorForMicroseconds(sqInt mSecs)	{
 	return 0;
 }
 
-int _atoi(char *str) {
-  unsigned int answer=0;
-  int base = 10;
-
-  if (*str == '0' && str[1] == 'x') {
-          base = 0x10;
-          str += 2;
-  }
-
-  while (*str) {
-    answer *= base;
-    if (*str > '9') 
-      answer += (*str | 0x20) - 'a' + 0xa;
-    else 
-      answer += *str - '0';
-    str++;
-  }
-  return answer;
-}
-
 #define bytesPerLine(width, depth)	((((width) + 31) >> 5 << 2) * (depth))
 #define bytesPerLineRD(width, depth)	((((width) >> 5) << 2) * (depth))
 
@@ -147,6 +127,7 @@ inline unsigned long swap32(unsigned int pixel) {
 	       ((pixel & 0xff00) << 8);
 }
 
+
 sqInt ioShowDisplay(sqInt fromImageData, sqInt width, sqInt height, sqInt depth,
                     sqInt affectedL, sqInt affectedR, sqInt affectedT, sqInt affectedB)
 {
@@ -189,7 +170,35 @@ sqInt ioShowDisplay(sqInt fromImageData, sqInt width, sqInt height, sqInt depth,
   }
 }
 
+#define bytesPerPixels(width, depth)	(width * (depth>>3))
+
 // Time functions
+void bitblt_1bit_to_fb(char *bitmap, int width, int height, int x, int y)
+{
+	int dest = videoInfo.address;
+	int bytesPerScanLine = videoInfo.scanLineSize; // the amount of bytes occupied by a line of the screen's framebuffer
+	
+	int depth = videoInfo.depth;
+		
+	if (depth != 32)
+		while(1); // we should have a fallback or something
+		
+	register int firstWord = bytesPerScanLine * y + bytesPerPixels(x, depth);
+	register int bytesPerRow = bytesPerPixels(width, depth);
+	
+	register int line;
+	int i;
+	
+	for (line = y - height; line < y; line++, firstWord -= bytesPerScanLine)
+	{
+		char *pos;
+		for (i = 0, pos = dest+firstWord; i < bytesPerRow; i++, pos++)
+		{
+			*pos = *(bitmap++);
+		}
+	}
+}
+
 
 sqInt ioMicroMSecs(void) {
   /* return the highest available resolution of the millisecond clock */
