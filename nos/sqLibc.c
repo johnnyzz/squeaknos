@@ -7,6 +7,9 @@
  * for squeaknos platform because they are platform dependent.
  *
 **/
+
+__thread int __libc_errno;
+
 int printf_pocho (const char *format, ...);
 
 void exit(int _)
@@ -168,6 +171,12 @@ int _atoi(char *str) {
 /* Put the character C on the screen.  */
 int putchar (int c)
 {
+	if (1)
+	{
+		std_console_put_char(c);
+		return;
+	}
+	
 	if (c == '\n' || c == '\r')
 	{
 newline:

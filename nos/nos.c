@@ -103,6 +103,8 @@ void _main (unsigned long magic, multiboot_info_t *mbi)
 		image = (void*)0x800000;
 	}
 
+	initialize_std_console();
+
 	if (image)
 	{
 		printf_pocho("Found image at 0x%x\n", image);

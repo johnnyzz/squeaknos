@@ -98,7 +98,6 @@ sqInt ioScreenSize(void) {
   return videoInfo.width << 16 | videoInfo.height;
 }
 
-__thread int __libc_errno;
 
 sqInt ioSetCursorWithMask(sqInt cursorBitsIndex, sqInt cursorMaskIndex, sqInt offsetX, sqInt offsetY) { return 1; }
 sqInt ioSetCursor(sqInt cursorBitsIndex, sqInt offsetX, sqInt offsetY) { return 0; }

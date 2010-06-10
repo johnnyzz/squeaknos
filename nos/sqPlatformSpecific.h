@@ -6,6 +6,8 @@ sqInt sqMain(void *image);
 
 void enable_paging();
 
+void mark(int col);
+
 #define warnPrintf printf
 
 /* undefine clock macros (these are implemented as functions) */
