@@ -26,6 +26,9 @@ void _main (unsigned long magic, multiboot_info_t *mbi)
 	enable_paging();
 	initializeComputer(magic, mbi);
 	
+	fill_rectangle(100, 50, 700, 300, 0x00ff0000);
+	fill_rectangle(100, 50, 700, 350, 0x0000ff00);
+	fill_rectangle(100, 50, 700, 400, 0x000000ff);
 	//printf("aaaa\nbbbb\ncccc\ndddd\neeee\nffff\ngggg");
 
 	if (computer.image)
@@ -55,9 +58,6 @@ void initializeComputer(unsigned long magic, multiboot_info_t *mbi)
 
 		initialize_std_console();
 
-		
-		printf_pocho("%d\n%d\n%d\n%d\n%d\n%d\n%d\n", 1, 2, 3, 4, 7, 15, 1024);
-		
 		if (mbi->flags && MULTIBOOT_INFO_MODS)
 		{
 			computer.image = getImageFromModules(mbi);

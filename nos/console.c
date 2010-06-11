@@ -82,6 +82,7 @@ void font_draw_char(TextPen *pen, char character)
 		return;
 		
 	bitblt_32bit_to_fb(rasters[character-32], FONT_GLYPH_WIDTH, FONT_GLYPH_HEIGHT, pen->positionX, pen->positionY);
+	fill_rectangle(1, FONT_GLYPH_HEIGHT, pen->positionX+FONT_GLYPH_WIDTH, pen->positionY, 0x00000000);
 }
 
 

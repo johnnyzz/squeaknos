@@ -79,7 +79,7 @@ LIBSRC = $(wildcard *.c) $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.c) $(w
 LIBSRCS = $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.S)
 LIBOBJ = $(LIBSRC:.c=.o) $(LIBSRCS:.S=.o)
 
-LIBCOBJS = strcpy.o strncmp.o strcmp.o strlen.o memcpy.o memcmp.o longjmp.o bsd-_setjmp.o __longjmp.o jmp-unwind.o sigprocmask.o
+LIBCOBJS = strchr.o strstr.o strcpy.o strncmp.o strcmp.o strlen.o memchr.o memcpy.o memcmp.o longjmp.o bsd-_setjmp.o __longjmp.o jmp-unwind.o sigprocmask.o
 
 ALLOBJ=		$(VMOBJ) libc.o
 

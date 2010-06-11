@@ -159,7 +159,7 @@ sqInt ioSeconds(void) {
 sqInt ioDisablePowerManager(sqInt disableIfNonZero)	{ return true; }
 sqInt ioExit(void)					{ 
 	printf_pocho("ioExit()\n\n");
-	printCallStack();
+	//printCallStack();
 	mark(0x001F);
 	mark(0x001F);
 	//while (1);

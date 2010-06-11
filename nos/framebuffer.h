@@ -7,5 +7,7 @@
 
 #define bytesPerPixels(width, depth)	(width * (depth>>3))
 
+void fill_rectangle(int width, int height, int x, int y, unsigned int color);
+void bitblt_32bit_to_fb(char *bitmap, int width, int height, int x, int y);
 
 #endif /// _FRAMEBUFFER_H_
