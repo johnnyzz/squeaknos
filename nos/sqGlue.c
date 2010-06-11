@@ -1,16 +1,8 @@
 #include <sq.h>
 #include "ints.h"
+#include "framebuffer.h"
 
-void *os_exports[][3] = {
-        {NULL, NULL, NULL}
-};
-
-// Video Mode Information
-struct {
-  int width, height, depth;
-  int address;
-  int scanLineSize;
-} videoInfo;
+extern Computer computer;
 
 // Mouse & Keyboard
 
@@ -48,54 +40,13 @@ sqInt ioRelinquishProcessorForMicroseconds(sqInt mSecs)	{
 	return 0;
 }
 
-#define bytesPerLine(width, depth)	((((width) + 31) >> 5 << 2) * (depth))
-#define bytesPerLineRD(width, depth)	((((width) >> 5) << 2) * (depth))
-
-void parseVideoInfoOFW() {
-    videoInfo.width = 1200;
-    videoInfo.height = 900;
-    videoInfo.depth = 16;
-    videoInfo.address = 0xfd000000;
-    videoInfo.scanLineSize = 2400;
-}
-
-void parseVideoInfo(char *videoConfigLine) {
-  char *p = videoConfigLine;
-  int i=0;
-
-  struct {
-    int  *var;
-    char sep;
-  } tokens[] = {
-    {&videoInfo.width, 'x'},
-    {&videoInfo.height, 'x'},
-    {&videoInfo.depth, '@'},
-    {&videoInfo.address, ','},
-    {&videoInfo.scanLineSize, '\0'}
-  };
-  
-  while (*p) {
-    if (*p == tokens[i].sep) {
-      *p = 0;
-      *tokens[i].var = _atoi(videoConfigLine);
-      videoConfigLine = p+1;
-      i++;
-    }
-    p++;
-  };
-
-  if (i<5) {
-    *tokens[i].var = _atoi(videoConfigLine);
-    videoInfo.scanLineSize = bytesPerLine(videoInfo.width, videoInfo.depth);
-  }
-}
 
 sqInt ioScreenDepth(void) {
-  return videoInfo.depth;
+  return computer.videoInfo.depth;
 } 
 
 sqInt ioScreenSize(void) {
-  return videoInfo.width << 16 | videoInfo.height;
+  return computer.videoInfo.width << 16 | computer.videoInfo.height;
 }
 
 
@@ -134,15 +85,15 @@ sqInt ioShowDisplay(sqInt fromImageData, sqInt width, sqInt height, sqInt depth,
   register int firstWord;
   register int line, countPerLine;
 
-  int toImageData = videoInfo.address;
-  int scanLine= videoInfo.scanLineSize;
+  int toImageData = computer.videoInfo.address;
+  int scanLine= computer.videoInfo.bytesPerScanLine;
 
   // fromImage = pointerForOop(fromImageData);
   firstWord= scanLine*affectedT + bytesPerLineRD(affectedL, depth);
   lastWord= scanLine*affectedT + bytesPerLine(affectedR, depth);
   countPerLine = lastWord - firstWord;
 
-  switch (videoInfo.depth) {
+  switch (computer.videoInfo.depth) {
     case 16:
       for (line= affectedT; line < affectedB; line++, firstWord += scanLine) {
         short *from = fromImageData+firstWord;
@@ -169,36 +120,8 @@ sqInt ioShowDisplay(sqInt fromImageData, sqInt width, sqInt height, sqInt depth,
   }
 }
 
-#define bytesPerPixels(width, depth)	(width * (depth>>3))
 
 // Time functions
-void bitblt_1bit_to_fb(char *bitmap, int width, int height, int x, int y)
-{
-	int dest = videoInfo.address;
-	int bytesPerScanLine = videoInfo.scanLineSize; // the amount of bytes occupied by a line of the screen's framebuffer
-	
-	int depth = videoInfo.depth;
-		
-	if (depth != 32)
-		while(1); // we should have a fallback or something
-		
-	register int firstWord = bytesPerScanLine * y + bytesPerPixels(x, depth);
-	register int bytesPerRow = bytesPerPixels(width, depth);
-	
-	register int line;
-	int i;
-	
-	for (line = y - height; line < y; line++, firstWord -= bytesPerScanLine)
-	{
-		char *pos;
-		for (i = 0, pos = dest+firstWord; i < bytesPerRow; i++, pos++)
-		{
-			*pos = *(bitmap++);
-		}
-	}
-}
-
-
 sqInt ioMicroMSecs(void) {
   /* return the highest available resolution of the millisecond clock */
   return ioMSecs();	/* this already to the nearest millisecond */
@@ -239,7 +162,7 @@ sqInt ioExit(void)					{
 	printCallStack();
 	mark(0x001F);
 	mark(0x001F);
-	while (1);
+	//while (1);
 }
 sqInt ioSetInputSemaphore(sqInt semaIndex)		{ return true; }
 

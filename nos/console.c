@@ -80,7 +80,8 @@ void font_draw_char(TextPen *pen, char character)
 {
 	if (character < 32)
 		return;
-	bitblt_1bit_to_fb(rasters[character-32], FONT_GLYPH_WIDTH, FONT_GLYPH_HEIGHT, pen->positionX, pen->positionY);
+		
+	bitblt_32bit_to_fb(rasters[character-32], FONT_GLYPH_WIDTH, FONT_GLYPH_HEIGHT, pen->positionX, pen->positionY);
 }
 
 

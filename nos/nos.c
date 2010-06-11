@@ -1,117 +1,154 @@
 #include "sq.h"
 #include "sqPlatformSpecific.h"
+#include "sqLibc.h"
+#include "ints.h"
 #include "multiboot.h"
-
+#include "framebuffer.h"
 #include "ofw.h"
 
-#undef DEBUG
+Computer computer;
 
-
-void initInts();
-
-int errno;
-int *__errno_location = &errno;
-multiboot_info_t *__mbi = 0;
-
-
-int printf_pocho (const char *format, ...);
-static void cls (void);
-void parseVideoInfo(char *);
-
-void parseVideoInfoOFW();
 void *OFW_callout;
+void *os_exports[][3] = { {NULL, NULL, NULL} };
 
-#define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
+void initializeComputer(unsigned long magic, multiboot_info_t *mbi);
+void parseVideoInfo   (DisplayInfo *videoInfo, char *videoConfigLine);
+void parseVideoInfoOFW(DisplayInfo *videoInfo);
 
-void mark(int col)
-{
-#ifdef DEBUG
-	static count = 1;
-	short *video = 0xfd000000;
-	int i;
+static
+char* parseString(char string[], int *variable, char separator_token);
 
-	for (i=10*count; i<1200*10-10*count;i++)
-		video[i+count*1200*10] = col;
-
-	count++;
-	count++;
-#endif
-}
+void* getImageFromModules (multiboot_info_t *mbi);
 
 
 void _main (unsigned long magic, multiboot_info_t *mbi)
 {
-	int i;
-	void *image = NULL;
+	enable_paging();
+	initializeComputer(magic, mbi);
+	
+	//printf("aaaa\nbbbb\ncccc\ndddd\neeee\nffff\ngggg");
+
+	if (computer.image)
+	{
+		printf_pocho("Found image at 0x%x\n", computer.image);
+		initInts();
+		sqMain(computer.image);
+	}
+	mark(0x00ff);
+}
+
+void initializeComputer(unsigned long magic, multiboot_info_t *mbi)
+{
+	computer.image = NULL;
 	
 	// set the memory map that grubs passes (grub gets it by asking the bios) to
-	// a variable we can query from the image by using a primitive
-	__mbi = mbi;
-
-	enable_paging();
+	// a variable we can query from the image by using a primitive	
+	computer.mbi = mbi;
 	
-	/* Are mods_* valid?  */
-	//printf_pocho("Paging has been enabled\n");
+		/* Are mods_* valid?  */
 	if (magic == MULTIBOOT_BOOTLOADER_MAGIC)
 	{
-		if (CHECK_FLAG (mbi->flags, 2))
+		if (mbi->flags && MULTIBOOT_INFO_CMDLINE)
 		{
-			char *video = (char*)mbi->cmdline;
-			int i, len = strlen(video);
-			// cmdline must be something like video=1024x768x32@0xf0000000,4096
-			// where 0xf0000000 is the base address and 4096 is the number of bytes per scanline
-			// if the number of byte per scanline is not present, it's going to be guessed (X/8)
-
-			for (i = 6; i<len; i++)
-			{
-				if (video[i] == '=')
-					if (!memcmp(&video[i-6], " video", 6))
-					{
-						video = &video[i+1];
-						parseVideoInfo(video);
-						break;
-					}
-			}
+			parseVideoInfo(&computer.videoInfo, (char*)mbi->cmdline);
 		}
 
-		if (CHECK_FLAG (mbi->flags, 3))
+		initialize_std_console();
+
+		
+		printf_pocho("%d\n%d\n%d\n%d\n%d\n%d\n%d\n", 1, 2, 3, 4, 7, 15, 1024);
+		
+		if (mbi->flags && MULTIBOOT_INFO_MODS)
 		{
-			module_t *mod;
-			int i;
-
-			printf_pocho ("mods_count = %d, mods_addr = 0x%x\n",
-			              (int) mbi->mods_count, (int) mbi->mods_addr);
-			for (i = 0, mod = (module_t *) mbi->mods_addr;
-			        i < mbi->mods_count;
-			        i++, mod++)
-				printf_pocho (" mod_start = 0x%x, mod_end = 0x%x, string = %s\n",
-				              (unsigned) mod->mod_start,
-				              (unsigned) mod->mod_end,
-				              (char *) mod->string);
-
-			if (mbi->mods_count == 1)
-			{
-				module_t *mod = (module_t*)mbi->mods_addr;
-				image = (void*)mod->mod_start;
-			}
+			computer.image = getImageFromModules(mbi);
 		}
 	}
 	else
 	{
 		OFW_callout = (void*)magic;
-		parseVideoInfoOFW();
-		image = (void*)0x800000;
+		parseVideoInfoOFW(&computer.videoInfo);
+		computer.image = (void*)0x800000;
 	}
 
-	initialize_std_console();
-
-	if (image)
-	{
-		printf_pocho("Found image at 0x%x\n", image);
-		initInts();
-		sqMain(image);
-	}
-	mark(0x00ff);
 }
 
+void parseVideoInfoOFW(DisplayInfo *videoInfo)
+{
+	videoInfo->width = 1200;
+	videoInfo->height = 900;
+	videoInfo->depth = 16;
+	videoInfo->address = 0xfd000000;
+	videoInfo->bytesPerScanLine = 2400;
+}
+
+
+/**
+ * videoConfigLine must be something like video=1024x768x32@0xf0000000,4096
+ * where 0xf0000000 is the base address and 4096 is the number of bytes per scanline
+ * if the number of byte per scanline is not present, it's going to be guessed (X/8)
+**/
+void parseVideoInfo(DisplayInfo *videoInfo, char *videoConfigLine)
+{
+	/* videoConfigLine is {width}x{height}x{depth}@{address},{bytesPerScanLine}\0 */
+
+	char sep_tokens[] = { /*width*/ 'x', /*height*/'x', /*depth*/ '@', /*address*/ ',', /*bytesPerScanLine*/ '\0'};
+	
+	videoConfigLine = strstr(videoConfigLine, "video=") + 6;
+
+	videoConfigLine = parseString(videoConfigLine, &videoInfo->width,   sep_tokens[0]);
+	videoConfigLine = parseString(videoConfigLine, &videoInfo->height,  sep_tokens[1]);
+	videoConfigLine = parseString(videoConfigLine, &videoInfo->depth,   sep_tokens[2]);
+	videoConfigLine = parseString(videoConfigLine, &videoInfo->address, sep_tokens[3]);
+	
+	if (videoConfigLine)
+		parseString(videoConfigLine, &videoInfo->bytesPerScanLine, sep_tokens[4]);
+	else
+		videoInfo->bytesPerScanLine = bytesPerLine(videoInfo->width, videoInfo->depth);
+}
+
+static char* parseString(char string[], int *variable, char separator_token)
+{
+	if (!string)
+		return 0;
+		
+	char *nextChar = string;
+	
+	while (*nextChar && *nextChar != separator_token)
+	{
+		nextChar++;
+	}
+
+	char original = *nextChar;
+	*nextChar = 0;
+	*variable = _atoi(string);
+	
+	// if we got into the end of the string return 0, else return next position
+	return original == 0 ? 0 : nextChar + 1;
+}
+
+
+void* getImageFromModules (multiboot_info_t *mbi)
+{
+	module_t *mod = (module_t *) mbi->mods_addr;
+
+	void *image = 0;
+
+	if (mbi->mods_count == 1)
+	{
+		image = (void*)mod->mod_start;
+	}
+	
+	printf_pocho ("mods_count = %d, mods_addr = 0x%x\n", (int) mbi->mods_count, (int) mbi->mods_addr);
+	
+	int i;
+	for (i = 0; i < mbi->mods_count; i++, mod++)
+	{
+		printf_pocho("mod_start = 0x%x, mod_end = 0x%x, string = %s\n",
+				(unsigned) mod->mod_start,
+				(unsigned) mod->mod_end,
+				(char *)   mod->string);
+	}
+	
+	return image;
+}
 

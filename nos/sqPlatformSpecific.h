@@ -2,6 +2,27 @@
 #define __SQ_PLATFORM_SPECIFIC_H__
 
 #define initialHeapSize 40*1024*1024
+
+#include "multiboot.h"
+
+// Video Mode Information
+typedef struct DisplayInfo {
+	int width, height, depth;
+	int address;
+	int bytesPerScanLine;
+} DisplayInfo;
+
+
+typedef struct Computer {
+	
+	DisplayInfo videoInfo;
+
+
+	multiboot_info_t *mbi;
+	void *image;
+
+} Computer;
+
 sqInt sqMain(void *image);
 
 void enable_paging();

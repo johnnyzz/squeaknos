@@ -8,6 +8,13 @@
  *
 **/
 
+/**
+ *  These two are globals declared as extern in some place of libc headers. We have to define them
+ *  to avoid undefined reference linker errors.
+ */
+int errno;
+int *__errno_location = &errno;
+
 __thread int __libc_errno;
 
 int printf_pocho (const char *format, ...);
@@ -321,3 +328,5 @@ __assert_fail(const char *assertion,
 	             assertion, file, line, function);
 	exit(0);
 }
+
+

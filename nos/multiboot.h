@@ -15,6 +15,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifndef MULTIBOOT_HEADER
+#define MULTIBOOT_HEADER 1
+
+
 /* Macros.  */
 
 /* The magic number for the Multiboot header.  */
@@ -193,3 +197,6 @@ typedef struct {
   unsigned short dseg_len;
 } apm_table_t;
 #endif /* ! ASM */
+
+#endif /* ! MULTIBOOT_HEADER */
+	 
