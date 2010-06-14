@@ -1,5 +1,5 @@
 
-include vm.conf.default
+-include vm.conf.default
 
 #use '-include' instead of 'include' so it doesn't fail if the file doesn't exist
 -include vm.conf 
