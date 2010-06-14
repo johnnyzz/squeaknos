@@ -2,6 +2,10 @@
 #include "fonttex.h"
 #include "string.h"
 #include "stdio.h"
+#include "console.h"
+
+
+Console console;
 
 
 char* first_char_of_line_ending_at(char *actualChar, char *stringStart)
@@ -15,15 +19,7 @@ char* first_char_of_line_ending_at(char *actualChar, char *stringStart)
 	return actualChar;
 }
 
-typedef struct
-{
-	int positionX;
-	int positionY;
-	
-	int width;
-	int glyph_width;
-	int glyph_height;
-} TextPen;
+
 
 void text_pen_initialize( TextPen *pen, int glyph_width, int glyph_height, int rect_width)
 {
@@ -86,24 +82,6 @@ void font_draw_char(TextPen *pen, char character)
 }
 
 
-#define CONSOLE_TEXT_BUFFER_SIZE 1000*1000
-
-typedef struct
-{
-	int glyph_width;
-	int glyph_height;
-	
-	int width;
-	int height;
-	
-	char text[CONSOLE_TEXT_BUFFER_SIZE];
-	int text_size;
-	
-} Console;
-
-Console console;
-
-
 void console_initialize(Console *console, int width, int height)
 {
 	console->glyph_width = 8;
@@ -112,6 +90,14 @@ void console_initialize(Console *console, int width, int height)
 	console->width = width;
 	console->height = height;
 	
+	console->text[0] = 0;
+	console->text_size = 0;
+	
+	console->debugging_now = 0;
+}
+
+void console_clear(Console *console)
+{
 	console->text[0] = 0;
 	console->text_size = 0;
 }
@@ -230,7 +216,7 @@ void console_push_string(Console *console, char string[])
 void std_console_put_string(char string[])
 {
 	console_push_string(&console, string);
-	console_draw(&console);
+//	console_draw(&console);
 	
 }
 
@@ -238,6 +224,6 @@ void std_console_put_char(char c)
 {
 	char str[2] = { c, 0 };
 	console_push_string(&console, str);
-	console_draw(&console);
+//	console_draw(&console);
 	
 }
