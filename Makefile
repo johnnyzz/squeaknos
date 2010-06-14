@@ -1,3 +1,10 @@
+
+include vm.conf.default
+
+#use '-include' instead of 'include' so it doesn't fail if the file doesn't exist
+-include vm.conf 
+
+
 ifndef SRCDIR
 include src32/plugins.ext
 include src32/plugins.int
@@ -9,10 +16,9 @@ endif
 VM       = SqueakNOS.obj
 VMOUTDIR = $(BLDDIR)
 
-#SQIMAGE  = Squeak-ESUG
-#SQIMAGE  = Squeak3.8-6665full
-SQIMAGE = SqueakNOS-Squeak4.2
-#SQIMAGE = PharoNOS
+ifndef SQIMAGE
+SQIMAGE = SqueakNOS
+endif
 
 all: $(VM)
 
