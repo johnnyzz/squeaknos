@@ -1,2 +1,8 @@
 
+# These are the default settings of squeak vm makefile.
+# YOU SHOULDN'T CHANGE THEM. There is a special file
+# called vm.conf. If it doesn't exist just create it. Then
+# overwrite any variable you want there.
+
+
 SQIMAGE = SqueakNOS
