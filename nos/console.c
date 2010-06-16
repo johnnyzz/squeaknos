@@ -4,6 +4,13 @@
 #include "stdio.h"
 #include "console.h"
 
+/**
+ * Activate this if you wan't to directly draw to the framebuffer, like
+ * when the VM is unexpectedly crashing and you want to know why.
+ * Most of the time using
+ * Transcript show: Computer current primPullDebugString is better.
+**/
+#define ACTIVATE_CONSOLE_DRAWING 0
 
 Console console;
 
@@ -11,12 +18,15 @@ Console console;
 char* first_char_of_line_ending_at(char *actualChar, char *stringStart)
 {
 	//printf("string starts at...%p ends at: %p\n", stringStart, actualChar);
-	while (actualChar > stringStart && *actualChar != '\n')
+	
+	actualChar--; // first char is end of string or end of line.
+	
+	while (actualChar >= stringStart && *actualChar != '\n')
 	{
 		actualChar--;
 	}
 	
-	return actualChar;
+	return ++actualChar;
 }
 
 
@@ -104,11 +114,12 @@ void console_clear(Console *console)
 
 void initialize_std_console()
 {
-	console_initialize(&console, 1000, 600);
+	console_initialize(&console, 1000, 200);
 }
 
 void console_draw_string(Console *console, char *string)
 {
+#ifdef ACTIVATE_CONSOLE_DRAWING
 	TextPen pen;
 	text_pen_initialize(&pen, console->glyph_width, console->glyph_height, console->width);
 	
@@ -118,6 +129,7 @@ void console_draw_string(Console *console, char *string)
 		text_pen_advance_char(&pen, *string);
 		string++;
 	}
+#endif 
 	
 }
 
@@ -178,6 +190,8 @@ char* console_calc_fitting_text(Console *console)
 		if (textHeight + previousLineHeight > console->height)
 			break;
 
+		textHeight += previousLineHeight;
+
 		//printf("got here\n");
 		actualLineStart = previousLineStart;
 		actualChar = actualLineStart - 1;
@@ -191,7 +205,7 @@ char* console_calc_fitting_text(Console *console)
 void console_draw(Console *console)
 {
 	char *text_start = console_calc_fitting_text(console);
-	//printf("calculated... %p start: %p\n", text_start, console->text);
+	//printf("calculated... %p start: %p, string:\n%s\n", text_start, console->text, text_start);
 	
 	console_draw_string(console, text_start);
 }
@@ -216,7 +230,7 @@ void console_push_string(Console *console, char string[])
 void std_console_put_string(char string[])
 {
 	console_push_string(&console, string);
-//	console_draw(&console);
+	console_draw(&console);
 	
 }
 
@@ -224,6 +238,6 @@ void std_console_put_char(char c)
 {
 	char str[2] = { c, 0 };
 	console_push_string(&console, str);
-//	console_draw(&console);
+	console_draw(&console);
 	
 }
