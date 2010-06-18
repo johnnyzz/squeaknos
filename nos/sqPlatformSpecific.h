@@ -7,20 +7,15 @@
 
 // Video Mode Information
 typedef struct DisplayInfo {
-	int width, height, depth;
-	int address;
-	int bytesPerScanLine;
+	int width, height, depth, address, bytesPerScanLine;
 } DisplayInfo;
 
 
 typedef struct Computer {
-	
 	DisplayInfo videoInfo;
-
-
 	multiboot_info_t *mbi;
 	void *image;
-
+	int snapshotStartAddress, snapshotEndAddress;
 } Computer;
 
 sqInt sqMain(void *image);
@@ -66,14 +61,14 @@ typedef unsigned int squeakFileOffsetType;
 #undef sqImageFileWrite
 #undef sqImageFileStartLocation
 
-#define sqImageFile			     SQFile*
+#define sqImageFile			     			 MemoryFile*
 #define sqImageFileClose(f)                  NULL
-#define sqImageFileOpen(fileName, mode)      NULL
+#define sqImageFileOpen(fileName, mode)      sqImageCopyMemoryBlock()
 #define sqImageFilePosition(f)               f->offset
 #define sqImageFileSeek(f, pos)              f->offset=pos
 #define sqImageFileStartLocation(fileRef, fileName, size)  0
 // #define sqImageFileRead(ptr, sz, count, f)	// see sqPlatformSpecific.c
-// #define sqImageFileWrite(ptr, sz, count, f) 	// see sqPlatformSpecific.c
+#define sqImageFileWrite(ptr, sz, count, f)  sqMemoryFileWrite(ptr, sz, count, f)
 
 typedef struct {
         char            *file;
@@ -83,6 +78,12 @@ typedef struct {
         int             fileSize;
         int             lastOp;  /* 0 = uncommitted, 1 = read, 2 = write */
 } SQFile;
+
+typedef struct {
+        unsigned long   start;
+        unsigned long   offset;
+        unsigned long   length;
+} MemoryFile;
 
 #ifndef __GNUC__
 # if HAVE_ALLOCA_H

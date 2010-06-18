@@ -14,16 +14,25 @@ sqInt sqGetFilenameFromString(char *aCharBuffer, char *aFilenameString, sqInt fi
 sqInt sqImageFileRead(char *ptr, sqInt sz, sqInt count, sqImageFile f) {
 
 	if (count*sz < 1024) {
-		memcpy(ptr, f->file+f->offset,count*sz);
+		memcpy(ptr, f->start+f->offset,count*sz);
 		f->offset += count*sz;
 	}
 	return count*sz;
 }
 
-sqInt sqImageFileWrite(char *ptr, sqInt sz, sqInt count, sqImageFile f) {
-	memcpy(f->file+f->offset,ptr,count*sz);
+static MemoryFile block;
+MemoryFile* sqImageCopyMemoryBlock(){
+		extern Computer computer;
+		block.start = computer.snapshotStartAddress;
+		block.length = computer.snapshotEndAddress - block.start + 1;
+		block.offset = 0;
+		return &block;
+}
+
+sqInt sqMemoryFileWrite(char *ptr, sqInt sz, sqInt count, sqImageFile f) {
+	memcpy(f->start+f->offset,ptr,count*sz);
 	f->offset += count*sz;
-	return count*sz;
+	return count;
 }
 
 /*** Memory ***/
@@ -61,13 +70,14 @@ sqMain(void *image) {
 	// startUpTime = timer;
 
 	/* read the image file and allocate memory for Squeak heap */
+	
 	sqImageFile f=&imgFile;
-	f->file=image;
+	f->start=image;
 	sqImageFileSeek(f, 0);
 	swapBytes = checkImageVersionFromstartingAt(f, 0);
 	headerSize = getLongFromFileswap(f, swapBytes);
 	sqImageFileSeek(f, 0);
-
+	
 	// Hack so we don't need to change interp.c
 	// otherwise we would need to comment out the call to sqAllocateMemory
 	mark(0x0e70); // green
