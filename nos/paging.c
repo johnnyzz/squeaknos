@@ -83,6 +83,5 @@ void enable_paging()
 	generate_empty_page_directory();
 	enable_paging_in_hardware();
 	
-	asm volatile("xchg %%bx, %%bx" ::: "ebx");
-
+	asm volatile("xchg %%bx, %%bx" ::: "ebx"); // This is only qemu debugging stuff...
 }

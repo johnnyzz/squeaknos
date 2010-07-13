@@ -36,7 +36,7 @@ void initInts() {
 
 	for (i=0x0;i<0x100;i++)
 		setIDT(IDT,i,voidISR);
-
+	
 	// master PIC
 	setIDT(IDT,0x0,clock_interrupt);
 	setIDT(IDT,0x1,irq_1_handler);
@@ -46,7 +46,7 @@ void initInts() {
 	setIDT(IDT,0x5,irq_5_handler);
 	setIDT(IDT,0x6,irq_6_handler);
 	setIDT(IDT,0x7,irq_7_handler);
-
+	
 	// Slave PIC
 	setIDT(IDT,0x8,irq_8_handler);
 	setIDT(IDT,0x9,irq_9_handler);
@@ -75,7 +75,7 @@ void initInts() {
 	outb((TIMER_DIVISOR >> 8) & 0xff, 0x40);
 	outb(~(IRQ_TIMER),0x21);
 	lidt((uint32)IDT,sizeof(IDT));
-	sti();      // Resume interrupts
+	sti();      // Resume interrupts*/
 }
 
 inline getCS() { 

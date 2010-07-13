@@ -15,7 +15,7 @@ typedef struct Computer {
 	DisplayInfo videoInfo;
 	multiboot_info_t *mbi;
 	void *image;
-	int snapshotStartAddress, snapshotEndAddress;
+	unsigned long snapshotStartAddress, snapshotEndAddress;
 } Computer;
 
 sqInt sqMain(void *image);
@@ -68,7 +68,7 @@ typedef unsigned int squeakFileOffsetType;
 #define sqImageFileSeek(f, pos)              f->offset=pos
 #define sqImageFileStartLocation(fileRef, fileName, size)  0
 // #define sqImageFileRead(ptr, sz, count, f)	// see sqPlatformSpecific.c
-#define sqImageFileWrite(ptr, sz, count, f)  sqMemoryFileWrite(ptr, sz, count, f)
+#define sqImageFileWrite(ptr, sz, count, f)  sqMemoryFileWrite(ptr, sz, count, *f)
 
 typedef struct {
         char            *file;
