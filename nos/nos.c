@@ -7,6 +7,7 @@
 #include "ofw.h"
 
 Computer computer;
+MemoryFile block;
 
 void *OFW_callout;
 void *os_exports[][3] = { {NULL, NULL, NULL} };
