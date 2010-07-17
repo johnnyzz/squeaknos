@@ -53,8 +53,8 @@ typedef unsigned int squeakFileOffsetType;
 // File things
 
 #undef sqImageFile
-#undef sqImageFileClose
 #undef sqImageFileOpen
+#undef sqImageFileClose
 #undef sqImageFilePosition
 #undef sqImageFileRead
 #undef sqImageFileSeek
@@ -62,7 +62,6 @@ typedef unsigned int squeakFileOffsetType;
 #undef sqImageFileStartLocation
 
 #define sqImageFile			     			 MemoryFile*
-#define sqImageFileClose(f)                  NULL
 #define sqImageFileOpen(fileName, mode)      sqImageCopyMemoryBlock()
 #define sqImageFilePosition(f)               f->offset
 #define sqImageFileSeek(f, pos)              f->offset=pos

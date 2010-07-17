@@ -19,19 +19,34 @@ sqInt sqImageFileRead(char *ptr, sqInt sz, sqInt count, sqImageFile f) {
 	}
 	return count*sz;
 }
+	 
+void sqImageFileClose(sqImageFile f) {
+	extern Computer computer;
+	extern MemoryFile block;
+	printf_pocho("entre al imageFileClose");
+	computer.snapshotEndAddress = block.offset;
+	return 1;
+}
 
 MemoryFile* sqImageCopyMemoryBlock(){
 		extern Computer computer;
 		extern MemoryFile block; 
-		block.start = computer.snapshotStartAddress;
-		block.length = computer.snapshotEndAddress - block.start + 1;
+		extern usqInt memory;
+		extern usqInt memoryLimit;
+		usqInt memorySize;
+		memorySize = memoryLimit - memory + 1;
+		printf_pocho("Snapshot end : %u\n",computer.snapshotEndAddress);
+		block.start = computer.snapshotEndAddress - memorySize;
+		computer.snapshotStartAddress = block.start;
+		printf_pocho("Snapshot start : %u\n",block.start);
+		block.length = memorySize;
 		block.offset = 0;
 		return &block;
 }
 
 sqInt sqMemoryFileWrite(char *ptr, sqInt sz, sqInt count, sqImageFile f) {
 	extern MemoryFile block;
-	printf_pocho("Posicion a escribir: %ul\n",block.start+block.offset);
+	printf_pocho("Posicion a escribir: %u\n",block.start+block.offset);
 	memcpy(block.start+block.offset,ptr,count*sz);
 	block.offset += count*sz;
 	return count;
