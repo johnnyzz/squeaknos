@@ -21,15 +21,19 @@ char* parseString(char string[], int *variable, char separator_token);
 
 void* getImageFromModules (multiboot_info_t *mbi);
 
+#include "../shared/splashscreen.c"
 
 void _main (unsigned long magic, multiboot_info_t *mbi)
 {
 	enable_paging();
 	initializeComputer(magic, mbi);
 	
-	fill_rectangle(100, 50, 700, 300, 0x00ff0000);
-	fill_rectangle(100, 50, 700, 350, 0x0000ff00);
-	fill_rectangle(100, 50, 700, 400, 0x000000ff);
+	//fill_rectangle(100, 50, 700, 300, 0x00ff0000);
+	//fill_rectangle(100, 50, 700, 350, 0x0000ff00);
+	//fill_rectangle(100, 50, 700, 400, 0x000000ff);
+	
+	memcpy (computer.videoInfo.address, splashscreen_image.pixel_data, splashscreen_image.width * splashscreen_image.height * 4);
+	//bitblt_32bit_to_fb(splashscreen_image.pixel_data, splashscreen_image.width, splashscreen_image.height, 0, 0);
 	//printf("aaaa\nbbbb\ncccc\ndddd\neeee\nffff\ngggg");
 
 	if (computer.image)
