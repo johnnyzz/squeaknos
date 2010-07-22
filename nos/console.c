@@ -117,15 +117,23 @@ void initialize_std_console()
 	console_initialize(&console, 1000, 200);
 }
 
+void console_fill_remaining_with_background(Console *console, int left, int top)
+{
+	fill_rectangle(console->width - left, FONT_GLYPH_HEIGHT, left, top, 0x00000000);
+	fill_rectangle(console->width, console->glyph_height - FONT_GLYPH_HEIGHT, 0 , top + console->glyph_height - FONT_GLYPH_HEIGHT, 0);
+}
+
 void console_draw_string(Console *console, char *string)
 {
-#ifdef ACTIVATE_CONSOLE_DRAWING
+#if ACTIVATE_CONSOLE_DRAWING
 	TextPen pen;
 	text_pen_initialize(&pen, console->glyph_width, console->glyph_height, console->width);
 	
 	while (*string != 0)
 	{
 		font_draw_char(&pen, *string);
+		if (*string == '\n')
+			console_fill_remaining_with_background(console, pen.positionX, pen.positionY);
 		text_pen_advance_char(&pen, *string);
 		string++;
 	}
