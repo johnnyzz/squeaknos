@@ -337,3 +337,38 @@ __assert_fail(const char *assertion,
 }
 
 
+int getpagesize(void)
+{
+	return 4096;
+}
+
+
+void* valloc(size_t size)
+{
+	unsigned int pagesize = getpagesize();
+	void* result = malloc(size + pagesize - 1);
+	
+	// if not already aligned, align.
+	result += pagesize - 1;
+	
+	return (void*)(((unsigned int)result) & (pagesize - 1));
+}
+
+void *memset(void *s, int c, size_t n)
+{
+	unsigned char cc = (unsigned char) c;
+	for (; n > 0; n--)
+		*(unsigned char*)s++ = cc;
+}
+
+int mprotect(void *addr, size_t len, int prot)
+{
+	return 0; // FIXME: STUB
+}
+
+void perror(const char *s)
+{
+	// FIXME: Should print also errno and a corresponding message
+	if (s)
+		printf_pocho(s);
+}
