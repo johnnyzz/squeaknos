@@ -32,20 +32,45 @@ void *malloc(unsigned int size)
 {
 	static char heap[HEAP_SIZE];
 	static char *heap_end = &heap[HEAP_SIZE];
-	static char *heap_new=heap;
+	static char *heap_new = heap;
 
 	unsigned long long total;
 	total = size;
+	
 
 	if (heap_new + total < heap_end)
 	{
 		char *answer = heap_new;
+		
 		heap_new += total;
 		return answer;
 	}
-	printf_pocho("malloc(%d)\n", size);
+	printf_pocho("malloc got out of space. You asked for (%d) bytes.\n", size);
 	ioExit();
 }
+
+// this asumes that malloc will get each block in a contiguous always forward way
+void* valloc(size_t size)
+{
+	unsigned int result = (unsigned int)malloc(1); // get one byte to see where we are placed.
+	
+	// now look where is the next aligned position (could be exactly result
+	// or something near it).
+	unsigned int pagesize      = getpagesize();
+	unsigned int first_aligned = result & (pagesize - 1);
+	unsigned int wasted        = first_aligned - result; // calc how many bytes are wasted due to alignment
+
+	// malloc the needed amount
+	if (malloc(pagesize + wasted - 1) != (void*)result+1)
+	{
+		//this should never happen. If it happens it's a big mistake.
+		printf_pocho("ERROR in valloc: malloc not allocating contiguous positions\n");
+		ioExit();
+	}
+
+	return (void*)first_aligned;
+}
+
 
 void *calloc(unsigned int count, unsigned int size)
 {
@@ -343,16 +368,6 @@ int getpagesize(void)
 }
 
 
-void* valloc(size_t size)
-{
-	unsigned int pagesize = getpagesize();
-	void* result = malloc(size + pagesize - 1);
-	
-	// if not already aligned, align.
-	result += pagesize - 1;
-	
-	return (void*)(((unsigned int)result) & (pagesize - 1));
-}
 
 void *memset(void *s, int c, size_t n)
 {
