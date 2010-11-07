@@ -45,6 +45,7 @@ clean:
 
 %.iso: %.k 
 	mv $(BLDDIR)/$< $(ISODIR)/SqueakNOS.kernel
+	cp $(SRCDIR)/SqueakNOS.config $(ISODIR)/SqueakNOS.config
 	mkisofs -J -hide-rr-moved -joliet-long -l -r -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $(BLDDIR)/$@ $(ISODIR)
 
 
