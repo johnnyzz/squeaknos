@@ -1,7 +1,7 @@
 #ifndef __SQ_PLATFORM_SPECIFIC_H__
 #define __SQ_PLATFORM_SPECIFIC_H__
 
-#define initialHeapSize 40*1024*1024
+#define initialHeapSize 100*1024*1024
 
 #include "multiboot.h"
 
@@ -18,7 +18,7 @@ typedef struct Computer {
 	unsigned long snapshotStartAddress, snapshotEndAddress;
 } Computer;
 
-sqInt sqMain(void *image);
+sqInt sqMain(void *image, unsigned int image_length);
 
 void enable_paging();
 

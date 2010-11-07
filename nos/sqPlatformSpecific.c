@@ -79,7 +79,7 @@ sqInt sqGrowMemoryBy(sqInt oldLimit, sqInt delta)	{
 sqInt sqShrinkMemoryBy(sqInt oldLimit, sqInt delta)	{ return oldLimit; }
 sqInt sqMemoryExtraBytesLeft(sqInt includingSwap)	{ return 0; }
 
-sqMain(void *image) {
+sqMain(void *image, unsigned int image_length) {
 	static SQFile imgFile;
 	sqInt swapBytes;
 	sqInt headerSize;
@@ -87,7 +87,6 @@ sqMain(void *image) {
 	// startUpTime = timer;
 
 	/* read the image file and allocate memory for Squeak heap */
-	
 	sqImageFile f=&imgFile;
 	f->start=image;
 	sqImageFileSeek(f, 0);
@@ -102,7 +101,8 @@ sqMain(void *image) {
 
 	mark(0x0e70); // green
 
-	readImageFromFileHeapSize(f, initialHeapSize);
+	readImageFromFileHeapSize(f,
+		image_length == 0 ? initialHeapSize : image_length + 1024*1024);
 
 	mark(0x0e70);
 	interpret();

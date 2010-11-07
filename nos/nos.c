@@ -24,6 +24,8 @@ void* getImageFromModules (multiboot_info_t *mbi);
 void set_std_console_debugging(int debugging);
 #include "../shared/splashscreen.c"
 
+static unsigned int length = 0;
+
 void _main (unsigned long magic, multiboot_info_t *mbi)
 {
 	enable_paging();
@@ -41,7 +43,7 @@ void _main (unsigned long magic, multiboot_info_t *mbi)
 	{
 		printf_pocho("Found image at 0x%x\n", computer.image);
 		initInts();
-		sqMain(computer.image);
+		sqMain(computer.image, length);
 	}
 	mark(0x00ff);
 }
@@ -138,9 +140,10 @@ void* getImageFromModules (multiboot_info_t *mbi)
 
 	void *image = 0;
 
-	if (mbi->mods_count == 1)
+	if (mbi->mods_count >= 1)
 	{
 		image = (void*)mod->mod_start;
+		length = mod->mod_end - mod->mod_start;
 	}
 	
 	printf_pocho ("mods_count = %d, mods_addr = 0x%x\n", (int) mbi->mods_count, (int) mbi->mods_addr);
