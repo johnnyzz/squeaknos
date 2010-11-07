@@ -22,6 +22,11 @@ endif
 
 all: $(VM)
 
+kernel: all
+	cp $(VMOUTDIR)/$(VM) $(ISODIR)/boot/SqueakNOS.o
+	make -C boot SqueakNOS.k
+	mv $(BLDDIR)/SqueakNOS.k $(ISODIR)/SqueakNOS.kernel
+
 try: all
 	cp $(SQIMAGE).image $(ISODIR)/SqueakNOS.image
 	cp $(SQIMAGE).changes $(ISODIR)/SqueakNOS.changes
