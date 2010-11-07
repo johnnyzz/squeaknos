@@ -157,12 +157,16 @@ sqInt ioSeconds(void) {
 // Others
 
 sqInt ioDisablePowerManager(sqInt disableIfNonZero)	{ return true; }
+
+void set_std_console_debugging(int debugging);
+
 sqInt ioExit(void)					{ 
+	set_std_console_debugging(1);
 	printf_pocho("ioExit()\n\n");
-	//printCallStack();
+	printCallStack();
 	mark(0x001F);
 	mark(0x001F);
-	//while (1);
+	while (1);
 }
 sqInt ioSetInputSemaphore(sqInt semaIndex)		{ return true; }
 
