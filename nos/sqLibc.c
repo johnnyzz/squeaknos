@@ -36,7 +36,11 @@ void *malloc(unsigned int size)
 
 	unsigned long long total;
 	total = size;
-	
+
+	while ((int)heap_new % 4 != 0) // align to 4 bytes
+	{
+		heap_new++;
+	}	
 
 	if (heap_new + total < heap_end)
 	{
