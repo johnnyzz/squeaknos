@@ -21,6 +21,7 @@ char* parseString(char string[], int *variable, char separator_token);
 
 void* getImageFromModules (multiboot_info_t *mbi);
 
+void set_std_console_debugging(int debugging);
 #include "../shared/splashscreen.c"
 
 void _main (unsigned long magic, multiboot_info_t *mbi)
@@ -131,7 +132,6 @@ static char* parseString(char string[], int *variable, char separator_token)
 	return original == 0 ? 0 : nextChar + 1;
 }
 
-
 void* getImageFromModules (multiboot_info_t *mbi)
 {
 	module_t *mod = (module_t *) mbi->mods_addr;
@@ -152,8 +152,22 @@ void* getImageFromModules (multiboot_info_t *mbi)
 				(unsigned) mod->mod_start,
 				(unsigned) mod->mod_end,
 				(char *)   mod->string);
+				
+		if (strcmp((char *)mod->string, "/SqueakNOS.config") == 0)
+		{
+			char *conf_str = (char *)mod->mod_start;
+			*((char*)mod->mod_end) = 0;
+			printf_pocho("Se encontro el modulo de config\n");
+			printf_pocho("Dice %s\n", conf_str);
+			set_std_console_debugging(conf_str[0] - '0');
+			printf_pocho("Fin el modulo de config\n");
+		}
 	}
 	
 	return image;
 }
 
+sqInt setMicroSecondsandOffset(sqLong * microSeconds, int * utcOffset) {
+	flag("toRemove");
+	return -1;
+}

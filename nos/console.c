@@ -10,7 +10,6 @@
  * Most of the time using
  * Transcript show: Computer current primPullDebugString is better.
 **/
-#define ACTIVATE_CONSOLE_DRAWING 0
 
 Console console;
 
@@ -103,7 +102,7 @@ void console_initialize(Console *console, int width, int height)
 	console->text[0] = 0;
 	console->text_size = 0;
 	
-	console->debugging_now = 0;
+	console->debugging_now = 1;
 }
 
 void console_clear(Console *console)
@@ -117,6 +116,11 @@ void initialize_std_console()
 	console_initialize(&console, 1000, 200);
 }
 
+void set_std_console_debugging(int debugging)
+{
+	console.debugging_now = debugging;
+}
+
 void console_fill_remaining_with_background(Console *console, int left, int top)
 {
 	fill_rectangle(console->width - left, FONT_GLYPH_HEIGHT, left, top, 0x00000000);
@@ -125,7 +129,9 @@ void console_fill_remaining_with_background(Console *console, int left, int top)
 
 void console_draw_string(Console *console, char *string)
 {
-#if ACTIVATE_CONSOLE_DRAWING
+	if (!console->debugging_now)
+		return;
+		
 	TextPen pen;
 	text_pen_initialize(&pen, console->glyph_width, console->glyph_height, console->width);
 	
@@ -137,7 +143,7 @@ void console_draw_string(Console *console, char *string)
 		text_pen_advance_char(&pen, *string);
 		string++;
 	}
-#endif 
+
 	
 }
 
