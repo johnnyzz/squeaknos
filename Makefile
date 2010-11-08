@@ -86,7 +86,10 @@ VMOBJ:=	$(VMSRC:.c=.o) gnu-interp.o
 INCS =-I$(VMDIR1) -I$(VMDIR2) -I$(VMDIR3) -I$(SRCDIR)/../Cross/plugins/$(PLUGIN)
 
 # second and third wildcards are hacks so that ffi plugin compiles
-LIBSRC = $(wildcard *.c) $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.c) $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/sqManualSurface*.c)
+ALIENPLUGINEXTRASRC = $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/Alien*.c) $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/ia32abicc*.c)
+FFIPLUGINEXTRASRC = $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.c) $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/sqManualSurface*.c)
+PLUGINEXTRASRC = $(FFIPLUGINEXTRASRC) $(ALIENPLUGINEXTRASRC)
+LIBSRC = $(wildcard *.c) $(PLUGINEXTRASRC)
 LIBSRCS = $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.S)
 LIBOBJ = $(LIBSRC:.c=.o) $(LIBSRCS:.S=.o)
 
