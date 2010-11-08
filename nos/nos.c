@@ -28,7 +28,7 @@ static unsigned int length = 0;
 
 void _main (unsigned long magic, multiboot_info_t *mbi)
 {
-	enable_paging();
+	//enable_paging();
 	initializeComputer(magic, mbi);
 	
 	//fill_rectangle(100, 50, 700, 300, 0x00ff0000);
