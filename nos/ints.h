@@ -3,6 +3,8 @@
 #ifndef __INTS_H
 #define __INTS_H
 
+#include "sqNosCommonStructures.h"
+
 typedef unsigned int uint32;
 typedef int t_IRQSemaphores[16];
 
@@ -13,7 +15,8 @@ void voidISR();
 void initInts();
 void setIDT(uint32 *IDT,unsigned int intNum,void *ISR);
 
-void clockISR();
+void changeDirectoryToReadWrite(unsigned long virtualAddress);
+void saveSnapshotPage(Computer* computer, unsigned long virtualAddress);
 
 #define REAL_TIMER_FREQUENCY	2000
 #define TIMER_DIVISOR	((int)(4772727/4/REAL_TIMER_FREQUENCY+1))
@@ -62,6 +65,25 @@ void clockISR();
 
 // #define asmlinkage CPP_ASMLINKAGE __attribute__((syscall_linkage))
 #define asmlinkage CPP_ASMLINKAGE __attribute__((regparm(0)))
+
+#define declareOneArgumentISR(name)		\
+	void name##_interrupt();	\
+	void name##ISR();	\
+	asm( 			\
+	".text\n" 	\
+	 __ALIGN_STR "\n" 	\
+	#name"_interrupt:\n\t"	\
+	"push %eax\n\t"		\
+	"movl 4(%esp), %eax\n\t"	\
+	SAVE_ALL		\
+	"push %eax\n\t"		\
+	"call "#name"ISR \n\t"	\
+	RESTORE_ALL		\
+	"pop %eax\n\t"		\
+	"addl $4,%esp\n\t" 	\
+	"iret\n\t"		\
+	)
+
 
 #define declareNativeISR(name)		\
 	void name##_interrupt();	\

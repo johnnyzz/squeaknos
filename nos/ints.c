@@ -1,13 +1,13 @@
 /*	$Id: ints.c,v 1.19 2001/08/15 05:30:40 gera Exp $	*/
 
 #include "ints.h"
+#include "sq.h"
 
 volatile unsigned long timer=0;
 
 t_IRQSemaphores IRQSemaphores;
 
 declareNativeISR(clock);
-
 declareMasterSemaphoreISR(1);
 declareMasterSemaphoreISR(2);
 declareMasterSemaphoreISR(3);
@@ -21,7 +21,7 @@ declareSlaveSemaphoreISR(10);
 declareSlaveSemaphoreISR(11);
 declareSlaveSemaphoreISR(12);
 declareSlaveSemaphoreISR(13);
-declareSlaveSemaphoreISR(14);
+declareOneArgumentISR(pageFault);
 declareSlaveSemaphoreISR(15);
 
 void initInts() {
@@ -54,7 +54,7 @@ void initInts() {
 	setIDT(IDT,0xb,irq_11_handler);
 	setIDT(IDT,0xc,irq_12_handler);
 	setIDT(IDT,0xd,irq_13_handler);
-	setIDT(IDT,0xe,irq_14_handler);
+	setIDT(IDT,0xe,pageFault_interrupt);
 	setIDT(IDT,0xf,irq_15_handler);
 
 	// Init PIC and make IRQs go from 0 to 0x10
@@ -95,8 +95,48 @@ void setIDT(uint32 *IDT,unsigned int intNum,void *ISR) {
 void clockISR() {
 	timer++;
 	// *(long*)(0xfd000000+timer)=0;
-
 	outb(0x20,0x20);
+}
+
+void pageFaultISR(unsigned long errorCode) {
+	extern Computer computer;
+	unsigned long virtualAddressFailure;
+	asm volatile("movl %%cr2, %0" : "=a" (virtualAddressFailure));
+	sti();
+	if ((errorCode & 1) == 1){
+		// Protection page fault
+		if (computer.snapshot.pagesSaved < computer.snapshot.pagesToSave){
+			saveSnapshotPage(&computer, virtualAddressFailure);
+		} else {
+			computer.pageFaultHandler(virtualAddressFailure);
+		}
+		
+	} else {
+		// page not present
+		computer.pageFaultHandler(virtualAddressFailure);
+	}
+}
+
+void saveSnapshotPage(Computer* computer, unsigned long virtualAddressFailure){
+	unsigned long saved = computer->snapshot.pagesSaved;
+	computer->snapshot.pages[saved].virtualAddress = virtualAddressFailure;
+	computer->snapshot.pages[saved].physicalAddress = virtualAddressFailure;
+	memcpy(&(computer->snapshot.pages[saved].contents),virtualAddressFailure, 4096); 	
+	changeDirectoryToReadWrite(virtualAddressFailure);
+	computer->snapshot.pagesSaved = saved + 1;
+}
+
+void changeDirectoryToReadWrite(unsigned long virtualAddressFailure){
+	unsigned long directoryIndex, pageTableIndex, pageDirectoryEntry, *directory, *pageTable, *pageTableEntry;
+	asm("movl %%cr3, %0" : "=a" (directory) );
+	directoryIndex = virtualAddressFailure >> 22;
+	directoryIndex &= 0x000003FF;
+	pageDirectoryEntry = directory[directoryIndex];
+	pageTable = pageDirectoryEntry & 0xfffff000;
+	pageTableIndex = virtualAddressFailure >> 12;
+	pageTableIndex &= 0x000003FF;
+	pageTableEntry = &pageTable[pageTableIndex];
+	*pageTableEntry |= 0x00000002;
 }
 
 /* voidISR */
