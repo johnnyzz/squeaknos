@@ -28,13 +28,13 @@ clean:
 %.o: %.c
 	gcc -o $(BLDDIR)/$@ -c $< -Wall -nostdlib
 
-%.k: $(BLDDIR)/SqueakNOS.obj loader.o kernel.ld
-	ld -o $(BLDDIR)/$@ -T kernel.ld loader.o $< 
+%.kernel: $(BLDDIR)/SqueakNOS.obj loader.o kernel.ld
+	ld -o $(BLDDIR)/SqueakNOS.kernel -T kernel.ld loader.o $< 
 
-%.k: %.elf
+%.kernel: %.elf
 	cp $(BLDDIR)/$< $(BLDDIR)/$@
 
-%.img: %.k $(FLOPPY)
+%.img: %.kernel $(FLOPPY)
 	cp $(FLOPPY) $(img)
 	mkdir $(mnt)
 	sudo mount -o loop $(img) $(mnt)
@@ -43,8 +43,8 @@ clean:
 	rmdir $(mnt)
 	mv $(img) $@
 
-%.iso: %.k 
-	mv $(BLDDIR)/$< $(ISODIR)/SqueakNOS.kernel
+%.iso: %.kernel
+	cp $(BLDDIR)/SqueakNOS.kernel $(ISODIR)/SqueakNOS.kernel
 	cp $(SRCDIR)/SqueakNOS.config $(ISODIR)/SqueakNOS.config
 	mkisofs -J -hide-rr-moved -joliet-long -l -r -b boot/grub/stage2_eltorito -no-emul-boot -boot-load-size 4 -boot-info-table -o $(BLDDIR)/$@ $(ISODIR)
 

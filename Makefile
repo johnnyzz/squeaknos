@@ -13,8 +13,8 @@ INTERNAL_LIBS = $(addsuffix .lib, $(INTERNAL_PLUGINS))
 EXTERNAL_LIBS = $(addsuffix .dll, $(EXTERNAL_PLUGINS))
 endif
 
-VM       = SqueakNOS.obj
-VMOUTDIR = $(BLDDIR)
+VM = SqueakNOS.obj
+
 
 ifndef SQIMAGE
 SQIMAGE = SqueakNOS
@@ -23,37 +23,31 @@ endif
 all: $(VM)
 
 kernel: all
-	cp $(VMOUTDIR)/$(VM) $(ISODIR)/boot/SqueakNOS.o
-	make -C boot SqueakNOS.k
-	mv $(BLDDIR)/SqueakNOS.k $(ISODIR)/SqueakNOS.kernel
+	make -C boot SqueakNOS.kernel
 
 try: all
 	cp $(SQIMAGE).image $(ISODIR)/SqueakNOS.image
 	cp $(SQIMAGE).changes $(ISODIR)/SqueakNOS.changes
-	cp $(VMOUTDIR)/$(VM) $(ISODIR)/boot/SqueakNOS.o
 	make -C boot SqueakNOS.try
 
 iso: all
 	cp -r $(SRCDIR)/boot/grub $(ISODIR)/boot/
 	cp $(SQIMAGE).image $(ISODIR)/SqueakNOS.image
 	cp $(SQIMAGE).changes $(ISODIR)/SqueakNOS.changes
-	cp $(VMOUTDIR)/$(VM) $(BLDDIR)/SqueakNOS.o
 	make -C boot SqueakNOS.iso SqueakNOS.cd.vmx
 
-
-DISTROEXCLUDES = .git $(BLDDIR) release isorelease bla mount otros testdata backup info sm bootdisk.raw
-EXCLUDESTRING = $(addprefix --exclude platforms/squeaknos/, $(DISTROEXCLUDES))
-
-distro:
-	make -C boot clean
-	echo $(EXCLUDESTRING)
-	cd ../../ && tar --exclude package-cache $(EXCLUDESTRING) --exclude *.img --exclude *.image --exclude *.changes --exclude .svn --exclude $(SQIMAGE).* -cvf sources.tar platforms/squeaknos platforms/Cross
-	mkdir -p $(ISODIR)
-	cd $(ISODIR) && tar xvf ../../../../sources.tar
-	make iso
-	rm ../../sources.tar
-	cd $(BLDDIR) && tar cjvf SqueakNOS-`date +%d-%b-%Y`.tar.bz2 SqueakNOS.iso SqueakNOS.cd.vmx
-	cd $(BLDDIR) && zip -9 SqueakNOS-`date +%d-%b-%Y`.zip SqueakNOS.iso SqueakNOS.cd.vmx
+# kernel is not totally needed (all would be enough) but helps to detect errors early
+distro: kernel
+	mkdir -p $(DISTRODIR)/platforms/squeaknos
+	mkdir -p $(DISTRODIR)/boot
+	cp -r $(SRCDIR)/boot/grub $(DISTRODIR)/boot/
+	rsync -a  $(SRCDIR)/boot $(SRCDIR)/common $(SRCDIR)/nos $(SRCDIR)/plugins $(SRCDIR)/scripts $(SRCDIR)/src32 $(DISTRODIR)/platforms/squeaknos
+	rsync -a --exclude=.svn $(SRCDIR)/../Cross $(DISTRODIR)/platforms
+	rsync -a $(SQIMAGE).image $(DISTRODIR)/SqueakNOS.image
+	rsync -a $(SQIMAGE).changes $(DISTRODIR)/SqueakNOS.changes
+	make -C boot ISODIR='../$(DISTRODIR)' SqueakNOS_distro.iso SqueakNOS_distro.cd.vmx
+	cd $(BLDDIR) && tar cjf SqueakNOS-`date +%d-%b-%Y`.tar.bz2 SqueakNOS_distro.iso SqueakNOS_distro.cd.vmx
+	cd $(BLDDIR) && zip -9 SqueakNOS-`date +%d-%b-%Y`.zip SqueakNOS_distro.iso SqueakNOS_distro.cd.vmx
 
 AR = ar
 CP = cp
@@ -73,6 +67,7 @@ endif
 
 BLDDIR= $(SRCDIR)/release
 ISODIR= $(BLDDIR)/iso
+DISTRODIR= $(BLDDIR)/distro
 
 ifndef OBJDIR
 OBJDIR= $(BLDDIR)
@@ -85,7 +80,7 @@ VMSRC = $(filter-out interp.c,$(notdir $(wildcard $(VMDIR2)/*.c) $(wildcard $(VM
 VMOBJ:=	$(VMSRC:.c=.o) gnu-interp.o
 INCS =-I$(VMDIR1) -I$(VMDIR2) -I$(VMDIR3) -I$(SRCDIR)/../Cross/plugins/$(PLUGIN)
 
-# second and third wildcards are hacks so that ffi plugin compiles
+# wildcards are hacks so that ffi and Alien plugins, which require extra compiling files, compile
 ALIENPLUGINEXTRASRC = $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/Alien*.c) $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/ia32abicc*.c)
 FFIPLUGINEXTRASRC = $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.c) $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/sqManualSurface*.c)
 PLUGINEXTRASRC = $(FFIPLUGINEXTRASRC) $(ALIENPLUGINEXTRASRC)
@@ -93,20 +88,37 @@ LIBSRC = $(wildcard *.c) $(PLUGINEXTRASRC)
 LIBSRCS = $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.S)
 LIBOBJ = $(LIBSRC:.c=.o) $(LIBSRCS:.S=.o)
 
-LIBCOBJS = strchr.o strstr.o strcpy.o strncmp.o strcmp.o strlen.o memchr.o memcpy.o memcmp.o longjmp.o bsd-_setjmp.o __longjmp.o jmp-unwind.o sigprocmask.o
+
+# Here we put which internal object files we need from libc. As each
+# version of libc changes, you may need to change this. The way to find
+# which ones you need is this:
+# ar t nos/bin/libc.a | grep strcmp # if we want to find all .o related
+# to strcmp. We got all this:
+STRCMPOBJS = strcmp.o strncmp.o strcmp-ssse3.o strcmp-sse4.o strncmp-c.o strncmp-ssse3.o strncmp-sse4.o
+MEMCPYOBJS = memcpy.o
+# memcpy-ssse3.o memcpy-ssse3-rep.o
+MEMCMPOBJS = memcmp.o
+# memcmp-ssse3.o memcmp-sse4.o
+LONGJMPOBJS = setjmp.o sigjmp.o longjmp.o __longjmp.o
+# longjmp_chk.o ____longjmp_chk.o 
+#sigprocmask.o
+DLSUPPORTOBJS = dl-support.o enbl-secure.o getenv.o access.o
+
+#LIBCOBJS = strchr.o strcpy.o strlen.o memchr.o memcpy.o longjmp.o bsd-_setjmp.o __longjmp.o jmp-unwind.o sigprocmask.o
+LIBCOBJS = strchr.o strcpy.o strlen.o memchr.o $(MEMCPYOBJS) $(LONGJMPOBJS) bsd-_setjmp.o jmp-unwind.o 
 
 ALLOBJ=		$(VMOBJ) libc.o
 
 
 # Where to look for files?
-VPATH=		$(VMDIR1) $(VMDIR2) $(VMDIR3) $(VMOUTDIR)
+VPATH=		$(VMDIR1) $(VMDIR2) $(VMDIR3) $(BLDDIR)
 
 .SUFFIXES:
 .SUFFIXES:	.ccg .cc .c .o .s .S .i .rc .res .cg .hg .ccg
 .INTERMEDIATE:  gnu-interp.c
 
 $(VM): .ensureRelease $(ALLOBJ) $(INTERNAL_LIBS) 
-		$(CC) -o $(VMOUTDIR)/$@ $(addprefix $(VMOUTDIR)/,$(ALLOBJ)) $(addprefix $(VMOUTDIR)/,$(INTERNAL_LIBS)) $(LDFLAGS) 
+		$(CC) -o $(BLDDIR)/$@ $(addprefix $(BLDDIR)/,$(ALLOBJ)) $(addprefix $(BLDDIR)/,$(INTERNAL_LIBS)) $(LDFLAGS) 
 
 # Building plugins
 
@@ -168,7 +180,7 @@ gnu-interp.c: interp.c
 ### housekeeping
 clean:
 #	make -C boot clean
-	-rm -rf $(BLDDIR)/iso
+	-rm -rf $(BLDDIR)/iso $(BLDDIR)/distro
 	-rm -f $(BLDDIR)/* *.iso *.vmx
 
 cleannos:
