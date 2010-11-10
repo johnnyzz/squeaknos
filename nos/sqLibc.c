@@ -380,6 +380,88 @@ void *memset(void *s, int c, size_t n)
 		*(unsigned char*)s++ = cc;
 }
 
+int memcmp (const void *s1, const void *s2, size_t len)
+{
+	const unsigned char *sp1, *sp2;
+
+	sp1 = s1;
+	sp2 = s2;
+
+	while (len != 0 && *sp1 == *sp2)
+		sp1++, sp2++, len--;
+
+	if (len == 0)
+		return 0;
+
+	return *sp1 - *sp2;
+}
+
+
+int strcmp (const char *s1, const char *s2)
+{
+	while (*s1 != 0 && *s1 == *s2)
+		s1++, s2++;
+
+	if (*s1 == 0 || *s2 == 0)
+		return (unsigned char) *s1 - (unsigned char) *s2;
+
+	return *s1 - *s2;
+}
+
+int strncmp(const char *s1, const char *s2, register size_t n)
+{
+	register unsigned char u1, u2;
+
+	while (n-- > 0)
+	{
+		u1 = (unsigned char) *s1++;
+		u2 = (unsigned char) *s2++;
+		
+		if (u1 != u2)
+			return u1 - u2;
+		if (u1 == '\0')
+			return 0;
+	}
+	
+	return 0;
+}
+
+
+char *
+strstr(const char *s1, const char *s2)
+{
+  const char *p, *q;
+
+	for (; *s1; s1++)
+	{
+		p = s1, q = s2;
+		while (*q && *p)
+		{
+			if (*q != *p)
+				break;
+				
+			p++, q++;
+		}
+		
+		if (*q == 0)
+			return (char *)s1;
+	}
+	
+	return 0;
+}
+
+/// System call. Nobody should use system calls, but we need it to avoid
+/// libc compile errors
+int sigprocmask(int how, const sigset_t *set, sigset_t *oset)
+{
+	return 0; // everythink OK (?)
+}
+
+int __sigprocmask (int how, const sigset_t *set, sigset_t *oset)
+{
+  return sigprocmask (how, set, oset);
+}
+
 int mprotect(void *addr, size_t len, int prot)
 {
 	return 0; // FIXME: STUB
