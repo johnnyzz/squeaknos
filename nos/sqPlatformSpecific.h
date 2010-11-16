@@ -4,19 +4,7 @@
 #define initialHeapSize 100*1024*1024
 
 #include "multiboot.h"
-
-// Video Mode Information
-typedef struct DisplayInfo {
-	int width, height, depth, address, bytesPerScanLine;
-} DisplayInfo;
-
-
-typedef struct Computer {
-	DisplayInfo videoInfo;
-	multiboot_info_t *mbi;
-	void *image;
-	unsigned long snapshotStartAddress, snapshotEndAddress;
-} Computer;
+#include "sqNosCommonStructures.h"
 
 sqInt sqMain(void *image, unsigned int image_length);
 
