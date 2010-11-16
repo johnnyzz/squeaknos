@@ -163,7 +163,7 @@ void set_std_console_debugging(int debugging);
 sqInt ioExit(void)					{ 
 	set_std_console_debugging(1);
 	printf_pocho("ioExit()\n\n");
-	printCallStack();
+//	printCallStack();
 	mark(0x001F);
 	mark(0x001F);
 	while (1);
