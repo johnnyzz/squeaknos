@@ -53,19 +53,25 @@ void *malloc(unsigned int size)
 	ioExit();
 }
 
+void *realloc(void * ptr, unsigned int size){
+	printf_pocho("Someone called unimplemented realloc. Exiting.");
+	ioExit();	
+}
+
+
 // this asumes that malloc will get each block in a contiguous always forward way
 void* valloc(size_t size)
 {
-	unsigned int result = (unsigned int)malloc(1); // get one byte to see where we are placed.
+	unsigned int result = (unsigned int)malloc(4); // get one byte to see where we are placed.
 	
 	// now look where is the next aligned position (could be exactly result
 	// or something near it).
 	unsigned int pagesize      = getpagesize();
-	unsigned int first_aligned = result & (pagesize - 1);
+	unsigned int first_aligned = (result + pagesize - 1) & ~(pagesize - 1);
 	unsigned int wasted        = first_aligned - result; // calc how many bytes are wasted due to alignment
 
 	// malloc the needed amount
-	if (malloc(pagesize + wasted - 1) != (void*)result+1)
+	if (malloc(pagesize + wasted - 4) != (void*)result+4)
 	{
 		//this should never happen. If it happens it's a big mistake.
 		printf_pocho("ERROR in valloc: malloc not allocating contiguous positions\n");
