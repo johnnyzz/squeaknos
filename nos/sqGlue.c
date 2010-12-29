@@ -159,6 +159,7 @@ sqInt ioSeconds(void) {
 sqInt ioDisablePowerManager(sqInt disableIfNonZero)	{ return true; }
 
 void set_std_console_debugging(int debugging);
+void enter_debug_mode();
 
 sqInt ioExit(void)					{ 
 	set_std_console_debugging(1);
@@ -166,7 +167,7 @@ sqInt ioExit(void)					{
 //	printCallStack();
 	mark(0x001F);
 	mark(0x001F);
-	while (1);
+	enter_debug_mode();
 }
 sqInt ioSetInputSemaphore(sqInt semaIndex)		{ return true; }
 
