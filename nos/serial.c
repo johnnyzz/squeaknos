@@ -22,7 +22,8 @@ static  unsigned char outb(unsigned short port, unsigned char byte)
 
 #define PORT 0x3f8   /* COM1 */
 
-void init_serial() {
+void init_serial()
+{
    outb(PORT + 1, 0x00);    // Disable all interrupts
    outb(PORT + 3, 0x80);    // Enable DLAB (set baud rate divisor)
    //outb(PORT + 0, 0x03);    // Set divisor to 3 (lo byte) 38400 baud
@@ -45,7 +46,8 @@ void read_all_registers()
 }
 
 
-int serial_received() {
+int serial_received()
+{
 
 	// Don't ask me why, but adding this fixes everything
 	// and I don't wan't to bother what the real problem is.
@@ -58,21 +60,38 @@ int serial_received() {
    return inb(PORT + 5) & 1;
 }
  
-unsigned char read_serial() {
+unsigned char read_serial()
+{
    while (serial_received() == 0);
  
    return inb(PORT);
 }
 
 
-int is_transmit_empty() {
+int is_transmit_empty()
+{
    return inb(PORT + 5) & 0x20;
 }
  
-void write_serial(char a) {
+void write_serial(unsigned char a)
+{
+   // separate in two 4 bit sends because it doesn't seem to be able to send 8 bits at once
+
    while (is_transmit_empty() == 0);
- 
-   outb(PORT,a);
+   outb(PORT, a & 0x0F);
+   
+   while (is_transmit_empty() == 0);
+   outb(PORT, (a>>4) & 0x0F);
+
+}
+
+void write_serial_string(char *string)
+{
+	while (*string != 0)
+	{
+		write_serial(*string);
+		string++;
+	}
 }
 
 

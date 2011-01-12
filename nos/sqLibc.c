@@ -210,12 +210,15 @@ int _atoi(char *str) {
   return answer;
 }
 
+void write_serial(unsigned char a);
+
 /* Put the character C on the screen.  */
 int putchar (int c)
 {
 	if (1)
 	{
 		std_console_put_char(c);
+		write_serial(c);
 		return;
 	}
 	

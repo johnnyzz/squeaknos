@@ -11,7 +11,7 @@ exit = False
 
 while not exit:
 
-	str_data = input("Siguiente direccion? ")
+	str_data = input("Next address? ")
 	data = struct.pack('1I', int(str_data)) # + '\x00'*12
 
 	s1.send(data)
