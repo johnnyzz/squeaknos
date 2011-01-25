@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import time
 import socket
 from select import select
@@ -12,10 +14,11 @@ s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s2.connect(('127.0.0.1',1234))
 
 s1 = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-s1.connect(('boot/serial1'))
+s1.connect(('./disks/serial1'))
 
 while 1:
 	r,w,x = select([s1, s2],[],[])
+	#r,w,x = select([s1],[],[])
 
 	if s1 in r:
 		data = s1.recv(100000)
