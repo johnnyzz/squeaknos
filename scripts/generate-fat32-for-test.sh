@@ -3,7 +3,7 @@
 # this script generates a raw FAT32 file that is to be used in FAT32 filesystem tests inside the image.
 # The contents of the generated file should be sinchronised with the contents that test cases expect.
 
-sizeMB=33 # if smaller than this gparted will fail
+sizeMB=40 # if smaller than this gparted will fail
 generatedFileName="testdata/ExampleFAT32.raw"
 
 ./scripts/create-disk.sh $sizeMB $generatedFileName
@@ -20,6 +20,8 @@ mount -t vfat $loopDevice ./mount/
 touch mount/empty.txt
 echo zaraza >mount/ascii
 echo 123456789 >mount/asciinumbers
+
+cp SqueakNOS.changes mount/
 
 echo " " >mount/morethanonesector
 for i in {1..100}
