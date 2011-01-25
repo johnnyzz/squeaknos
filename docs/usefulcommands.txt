@@ -1,0 +1,7 @@
+
+
+To copy a SqueakNOS image into a vmdk image:
+
+./scripts/copy.sh -i="NOS-Pharo-1.1- 1" -d=disks/SqueakNOS.vmdk
+
+

@@ -1,0 +1,26 @@
+
+You can try to build everything in your machine but it will probably fail
+the first time.
+This is because we depend on some libc functions that are diferently
+implemented in each iteration of libc. As we rely in the internal parts
+the result is that make process breaks any time its files are changed.
+
+Sooo, we created a virtual machine that is used just to compile. That way
+everybody has the exact same libs at the time of building, which is nice
+and we get away with fixing the makefile.
+
+You first have to share squeak trunk folder to the VM. Then, mount that
+dir inside the VM. In VirtualBox:
+
+
+$> mkdir host
+$> sudo mount -t vboxsf squeak-svn ~/host   #mount host's files in guest's filesystem
+$> cd host/platforms/squeaknos/
+$> sudo bash                    # to be able to write, maybe you don't need this
+$> make kernel                  # or make iso or what you want
+
+
+for more info on sharing files: http://forums.virtualbox.org/viewtopic.php?t=15868
+
+
+
