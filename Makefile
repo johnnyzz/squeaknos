@@ -10,6 +10,7 @@ include src32/plugins.ext
 include src32/plugins.int
 
 INTERNAL_LIBS = $(addsuffix .lib, $(INTERNAL_PLUGINS))
+#INTERNAL_LIBS = $(filter-out SurfacePlugin.lib, $(INTERNAL_LIBS2))
 EXTERNAL_LIBS = $(addsuffix .dll, $(EXTERNAL_PLUGINS))
 endif
 
@@ -57,7 +58,7 @@ LD = ld
 CFLAGS = -fno-stack-protector -g  -O4 -fno-inline -fomit-frame-pointer -funroll-loops -fschedule-insns2
 LDFLAGS = -static -nostdlib -lm -Xlinker -r
 CXXFLAGS= $(CFLAGS) -felide-constructors
-DEFS  = -DNO_STD_FILE_SUPPORT -DDEBUG -DLSB_FIRST -DX86 $(XDEFS)
+DEFS  = -DNO_STD_FILE_SUPPORT -DDEBUG -DLSB_FIRST -DX86 -D_FORTIFY_SOURCE=0 $(XDEFS)
 XDEFS = -DSQUEAK_BUILTIN_PLUGIN
 
 ifndef SRCDIR
@@ -83,7 +84,8 @@ INCS =-I$(VMDIR1) -I$(VMDIR2) -I$(VMDIR3) -I$(SRCDIR)/../Cross/plugins/$(PLUGIN)
 # wildcards are hacks so that ffi and Alien plugins, which require extra compiling files, compile
 ALIENPLUGINEXTRASRC = $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/Alien*.c) $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/ia32abicc*.c)
 FFIPLUGINEXTRASRC = $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.c) $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/sqManualSurface*.c)
-PLUGINEXTRASRC = $(FFIPLUGINEXTRASRC) $(ALIENPLUGINEXTRASRC)
+SURFACEPLUGINEXTRASRC = $(wildcard $(SRCDIR)/../Cross/plugins/$(PLUGIN)/SurfacePlugin*.c)
+PLUGINEXTRASRC = $(FFIPLUGINEXTRASRC) $(ALIENPLUGINEXTRASRC) $(SURFACEPLUGINEXTRASRC)
 LIBSRC = $(wildcard *.c) $(PLUGINEXTRASRC)
 LIBSRCS = $(wildcard $(SRCDIR)/plugins/$(PLUGIN)/x86-sysv*.S)
 LIBOBJ = $(LIBSRC:.c=.o) $(LIBSRCS:.S=.o)
