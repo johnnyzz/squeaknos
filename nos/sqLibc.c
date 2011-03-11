@@ -18,6 +18,7 @@ int *__errno_location = &errno;
 __thread int __libc_errno;
 
 int printf_pocho (const char *format, ...);
+int printf_pochoTab (unsigned long tab, const char *format, ...);
 
 void exit(int _)
 {
@@ -309,6 +310,19 @@ int printf_pocho (const char *format, ...)
 {
 	char **arg = (char **) &format;
 
+	bprintf(format, arg);
+}
+
+int printf_pochoTab (unsigned long tab, const char *format, ...)
+{
+	extern unsigned long tabs;
+	//printf_pocho("entre a printfPochoTab %d", tab);
+	if ((tab < 0) || (tab>20)) tabs = 0;
+	unsigned long i;
+	for(i = 0; i < tabs; i++){
+		printf_pocho("\t");
+	}
+	char **arg = (char **) &format;
 	bprintf(format, arg);
 }
 

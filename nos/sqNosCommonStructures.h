@@ -27,6 +27,9 @@ typedef struct Computer {
 	unsigned long snapshotStartAddress, snapshotEndAddress;
 	void (*pageFaultHandler)(unsigned long);
 	SnapshotInfo snapshot;
+	unsigned long inPageFault;
+	unsigned long pageFaultAddress;
+	unsigned long totalPageFaults;
 } Computer;
 
 #endif  /* __SQNOS_COMMON_STRUCTURES_H__ */

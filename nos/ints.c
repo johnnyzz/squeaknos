@@ -100,44 +100,69 @@ void clockISR() {
 
 void pageFaultISR(unsigned long errorCode) {
 	extern Computer computer;
-	unsigned long virtualAddressFailure;
+	extern t_IRQSemaphores IRQSemaphores;
+	extern sqInt allocationCount;
+	extern sqInt allocationsBetweenGCs;
+	extern unsigned long tabs;
+	sqInt savedSuccessFlag;
+	extern sqInt successFlag;
+	savedSuccessFlag = successFlag;
+	unsigned long virtualAddressFailure, currentAllocationBetweenGCs;
+	//computer.inPageFault++;
+	computer.totalPageFaults++;
 	asm volatile("movl %%cr2, %0" : "=a" (virtualAddressFailure));
-	sti();
+	currentAllocationBetweenGCs = allocationsBetweenGCs;
+	printf_pochoTab(tabs, "PageFaultISR: Entre\n");
+	tabs+=1;
+	printf_pochoTab(tabs,"PageFaultISR: Esta en la rootTable: %d\n",isInsideRootTable(virtualAddressFailure));	
+	computer.pageFaultAddress = virtualAddressFailure;
 	if ((errorCode & 1) == 1){
 		// Protection page fault
-		if (computer.snapshot.pagesSaved < computer.snapshot.pagesToSave){
-			saveSnapshotPage(&computer, virtualAddressFailure);
+		if ((computer.snapshot.pagesSaved < computer.snapshot.pagesToSave) || (computer.inPageFault > 1)){
+			sti();
+			printf_pochoTab(tabs,"PageFaultISR: Paginas salvadas a mano: %d de %d \n",computer.snapshot.pagesSaved,computer.snapshot.pagesToSave);
+			printf_pochoTab(tabs,"PageFaultISR: Entre al pageFaultNativo en:%d, Allocations between: %d, Allocation count: %d!\n",virtualAddressFailure,allocationsBetweenGCs,allocationCount);
+			saveSnapshotPage(virtualAddressFailure);
 		} else {
+			signalSemaphoreWithIndex(IRQSemaphores[15]);
+			sti();
+			printf_pochoTab(tabs,"PageFaultISR: Entre al pageFaultCallback en:%d, Allocations between: %d, Allocation count: %d!\n",virtualAddressFailure,allocationsBetweenGCs,allocationCount);
+			allocationsBetweenGCs = 100000; /* set to high to ensure no incrementalGc */
 			computer.pageFaultHandler(virtualAddressFailure);
+			allocationsBetweenGCs = currentAllocationBetweenGCs;
 		}
-		
 	} else {
 		// page not present
+		sti();
+		signalSemaphoreWithIndex(IRQSemaphores[15]);
+		printf_pochoTab(tabs,"PageFaultISR: Inside a not present page fault");
 		computer.pageFaultHandler(virtualAddressFailure);
 	}
+	successFlag = savedSuccessFlag;
+	tabs-=1;
+	//computer.inPageFault--;
+	printf_pochoTab(tabs,"PageFaultISR: Sali\n");
 }
 
-void saveSnapshotPage(Computer* computer, unsigned long virtualAddressFailure){
-	unsigned long saved = computer->snapshot.pagesSaved;
-	computer->snapshot.pages[saved].virtualAddress = virtualAddressFailure;
-	computer->snapshot.pages[saved].physicalAddress = virtualAddressFailure;
-	memcpy(&(computer->snapshot.pages[saved].contents),virtualAddressFailure, 4096); 	
-	changeDirectoryToReadWrite(virtualAddressFailure);
-	computer->snapshot.pagesSaved = saved + 1;
+unsigned long isInsideRootTable(unsigned long virtualAddressFailure){
+	unsigned long i,oop;
+	extern unsigned long rootTableCount,extraRootCount,tabs;
+	extern unsigned long* rootTable;
+	extern unsigned long* extraRoots;
+	for (i = 1; i <= rootTableCount; i += 1) {
+		oop = rootTable[i];
+		if ((virtualAddressFailure >= oop) && (virtualAddressFailure <= oop + 100)){ printf_pochoTab(tabs,"IsInsideRootTable: RootTable: %d",oop);return 1;}
+	}
+	
+	for (i = 1; i <= extraRootCount; i += 1) {
+		oop = ((unsigned long *)(extraRoots[i]))[0];
+		if (!((oop & 1))) {
+			if ((virtualAddressFailure >= oop) && (virtualAddressFailure <= oop + 100)){printf_pochoTab(tabs,"IsInsideRootTable: ExtraRootTable: %d",oop);return 1;}
+		}
+	}
+	return 0;
 }
 
-void changeDirectoryToReadWrite(unsigned long virtualAddressFailure){
-	unsigned long directoryIndex, pageTableIndex, pageDirectoryEntry, *directory, *pageTable, *pageTableEntry;
-	asm("movl %%cr3, %0" : "=a" (directory) );
-	directoryIndex = virtualAddressFailure >> 22;
-	directoryIndex &= 0x000003FF;
-	pageDirectoryEntry = directory[directoryIndex];
-	pageTable = pageDirectoryEntry & 0xfffff000;
-	pageTableIndex = virtualAddressFailure >> 12;
-	pageTableIndex &= 0x000003FF;
-	pageTableEntry = &pageTable[pageTableIndex];
-	*pageTableEntry |= 0x00000002;
-}
 
 /* voidISR */
 asm( \
@@ -162,4 +187,32 @@ void inline lidt(uint32 offset, unsigned short size) {
         idt_descriptor.addr = offset;
 
         __asm__ __volatile__ ("lidt %0" :: "m" (idt_descriptor));
+}
+
+void connectToAPM() {
+	//connect to an APM interface
+	asm("mov 0x53,%ah"); //this is an APM command
+    asm("mov 3,%al"); // connecting to real mode
+    asm("xor %bx,%bx"); // and device 0 (0 = APM BIOS)
+    asm("int $0x15");     // call the BIOS function through interrupt 15h
+	//asm("jc APM_error") // if the carry flag is set there was an error
+}	
+
+void enablePowerManagement() {
+	asm("mov 0x53,%ah"); //this is an APM command
+	asm("mov 0x8,%al");  // Change the state of power management...
+	asm("mov 1, %bx"); // ...on all devices to...
+	asm("mov 1, %cx"); //...power management on.
+	asm("int $0x15"); // call the BIOS function through interrupt 15h
+}
+
+void shutdownComputer() {
+	
+	connectToAPM();
+	enablePowerManagement();
+	asm("mov 0x53, %ah"); // this is an APM command
+	asm("mov 0x7, %al"); // Set the power state...
+	asm("mov 1, %bx"); //...on all devices to...
+	asm("mov 0x3, %cx"); // power mode: shutdown
+	asm("int $0x15"); // call the BIOS function throu
 }

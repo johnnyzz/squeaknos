@@ -113,7 +113,7 @@ void console_clear(Console *console)
 
 void initialize_std_console()
 {
-	console_initialize(&console, 1000, 200);
+	console_initialize(&console, 1000, 600);
 }
 
 void set_std_console_debugging(int debugging)

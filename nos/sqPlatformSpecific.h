@@ -1,10 +1,9 @@
 #ifndef __SQ_PLATFORM_SPECIFIC_H__
 #define __SQ_PLATFORM_SPECIFIC_H__
 
-#define initialHeapSize 100*1024*1024
-
-#include "multiboot.h"
 #include "sqNosCommonStructures.h"
+
+#define initialHeapSize 100*1024*1024
 
 sqInt sqMain(void *image, unsigned int image_length);
 

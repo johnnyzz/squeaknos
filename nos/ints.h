@@ -15,8 +15,7 @@ void voidISR();
 void initInts();
 void setIDT(uint32 *IDT,unsigned int intNum,void *ISR);
 
-void changeDirectoryToReadWrite(unsigned long virtualAddress);
-void saveSnapshotPage(Computer* computer, unsigned long virtualAddress);
+unsigned long isInsideRootTable(unsigned long virtualAddressFailure);
 
 #define REAL_TIMER_FREQUENCY	2000
 #define TIMER_DIVISOR	((int)(4772727/4/REAL_TIMER_FREQUENCY+1))
@@ -78,6 +77,7 @@ void saveSnapshotPage(Computer* computer, unsigned long virtualAddress);
 	SAVE_ALL		\
 	"push %eax\n\t"		\
 	"call "#name"ISR \n\t"	\
+	"addl $4,%esp\n\t" 	\
 	RESTORE_ALL		\
 	"pop %eax\n\t"		\
 	"addl $4,%esp\n\t" 	\

@@ -50,12 +50,15 @@ void _main (unsigned long magic, multiboot_info_t *mbi)
 
 void initializeComputer(unsigned long magic, multiboot_info_t *mbi)
 {
+	computer.snapshotStartAddress = 0;
+	computer.snapshotEndAddress = 0;
+
 	computer.image = NULL;
 	
 	// set the memory map that grubs passes (grub gets it by asking the bios) to
 	// a variable we can query from the image by using a primitive	
 	computer.mbi = mbi;
-	
+	computer.inPageFault = 0;
 		/* Are mods_* valid?  */
 	if (magic == MULTIBOOT_BOOTLOADER_MAGIC)
 	{
@@ -174,3 +177,12 @@ sqInt setMicroSecondsandOffset(sqLong * microSeconds, int * utcOffset) {
 	flag("toRemove");
 	return -1;
 }
+
+void printMemoryState(){
+	extern unsigned long endOfMemory,memory,memoryLimit,freeBlock,youngStart;
+	printf_pocho("Memory: %d \n", memory);
+	printf_pocho("Young start: %d \n", youngStart);
+	printf_pocho("Free block: %d \n", freeBlock);
+	printf_pocho("End of memory: %d \n", endOfMemory);
+	printf_pocho("Memory limit: %d \n", memoryLimit);
+}	
