@@ -9,6 +9,8 @@
 Computer computer;
 MemoryFile block;
 
+unsigned long tabs = 0; // used for outputting to console
+
 void *OFW_callout;
 void *os_exports[][3] = { {NULL, NULL, NULL} };
 
