@@ -109,7 +109,9 @@ DLSUPPORTOBJS = dl-support.o enbl-secure.o getenv.o access.o
 #LIBCOBJS = strchr.o strcpy.o strlen.o memchr.o memcpy.o longjmp.o bsd-_setjmp.o __longjmp.o jmp-unwind.o sigprocmask.o
 LIBCOBJS = strchr.o strcpy.o strlen.o memchr.o $(MEMCPYOBJS) $(LONGJMPOBJS) bsd-_setjmp.o jmp-unwind.o 
 
-ALLOBJ=		$(VMOBJ) libc.o
+LIBGCCOBJS = _divdi3.o _moddi3.o
+
+ALLOBJ=		$(VMOBJ) libc.o libgcc.o
 
 
 # Where to look for files?
@@ -170,8 +172,16 @@ libc.o: /usr/lib/libc.a
 	ld -r -o $(BLDDIR)/$@ $(LIBCOBJS)
 	$(RM) $(LIBCOBJS)
 
+libgcc.o: 
+	$(AR) x `gcc -print-libgcc-file-name` $(LIBGCCOBJS)
+	ld -r -o $(BLDDIR)/$@ $(LIBGCCOBJS)
+	$(RM) $(LIBGCCOBJS)
+
+
+
 gnu-interp.c: interp.c
 	./gnuify $< > $@
+	cp gnu-interp.c gnu-interp.c.bak
 
 
 .ensureRelease:
