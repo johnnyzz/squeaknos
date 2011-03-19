@@ -313,6 +313,15 @@ int printf_pocho (const char *format, ...)
 	bprintf(format, arg);
 }
 
+int printf_fixed_size(const char *string, const long size)
+{
+	int i = 0;
+	for (i = 0; i < size; i++)
+	{
+		putchar (string[i]);
+	}
+}
+
 int printf_pochoTab (unsigned long tab, const char *format, ...)
 {
 	extern unsigned long tabs;
