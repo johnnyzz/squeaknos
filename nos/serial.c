@@ -70,7 +70,20 @@ unsigned char read_serial()
 
 int is_transmit_empty()
 {
-   return inb(PORT + 5) & 0x20;
+	static int count = 0;
+	int res = inb(PORT + 5) & 0x20;
+	if (res == 0)
+		count++;
+	else
+		count = 0;
+	
+	if (count == 10000)
+	{
+		read_all_registers();
+		count = 0;
+		res = 1;
+	}
+	return res;
 }
  
 void write_serial(unsigned char a)
