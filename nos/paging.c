@@ -11,6 +11,8 @@
  *  This file handles the basic stuff related to memory paging
 **/
 
+extern unsigned long tabs;
+
 // we add 1024 extra so we can get aligned to 1024 blocks
 
 // returns a pointer to an array of 1024 page directory entries
@@ -76,7 +78,7 @@ void setTableReadOnly(unsigned int *pageTable, int firstIndex, int lastIndex)
 }
 
 void makeReadOnly(unsigned long from, unsigned long to){
-	printf_pocho("Read only from: %d to: %d\n",from,to);
+	printf_pochoTab(tabs,"Read only from: %d to: %d\n",from,to);
 	unsigned int *pageDirectory;
 
 	asm volatile("movl %%cr3, %0": "=a" (pageDirectory));
@@ -88,7 +90,7 @@ void makeReadOnly(unsigned long from, unsigned long to){
 	unsigned int firstTableIndex = (from & 0x003FF000) >> 12;
 	unsigned int lastTableIndex  = (to   & 0x003FF000) >> 12;
 	
-	printf_pocho("Page Directory: %d\n,First table: %d, last table: %d,\n first entry in first table: %d, last entry in last table: %d\n",
+	printf_pochoTab(tabs,"Page Directory: %d\n,First table: %d, last table: %d,\n first entry in first table: %d, last entry in last table: %d\n",
 				pageDirectory, firstDirIndex, lastDirIndex, firstTableIndex, lastTableIndex);
 	
 	for (i = firstDirIndex; i <= lastDirIndex; i++)
@@ -147,14 +149,14 @@ void saveProcessListPagesWithPriority(sqInt priority){
 void saveExternalSemaphorePages(sqInt index){
 	extern sqInt specialObjectsOop,nilObj;
 	sqInt array, semaphore,firstProcess;
-	printf_pocho("Entre saveExternalSemaphorePages %d\n", index);	
+	printf_pochoTab(tabs,"Entre saveExternalSemaphorePages %d\n", index);	
 	array = longAt((specialObjectsOop + (BASE_HEADER_SIZE)) + (ExternalObjectsArray << (SHIFT_FOR_WORD)));
 	semaphore = longAt((array + (BASE_HEADER_SIZE)) + ((index - 1) << (SHIFT_FOR_WORD)));	
 	saveSnapshotPage(semaphore);
 	firstProcess = longAt((semaphore + (BASE_HEADER_SIZE)) + (FirstLinkIndex << (SHIFT_FOR_WORD)));
 	if ((firstProcess == nilObj) || (index == 0)) return;
 	saveProcessList(firstProcess);
-	printf_pocho("Sali saveExternalSemaphorePages\n");
+	printf_pochoTab(tabs,"Sali saveExternalSemaphorePages\n");
 }
 
 void saveProcessList(sqInt aProcess){
@@ -169,9 +171,9 @@ void saveProcessList(sqInt aProcess){
 
 void saveSnapshotPage(unsigned long virtualAddressFailure){
 	extern Computer computer;
-	printf_pocho("Entre a saveSnapshotPage en la direccion:%d\n",virtualAddressFailure);
+	printf_pochoTab(tabs,"Entre a saveSnapshotPage en la direccion:%d\n",virtualAddressFailure);
 	unsigned long pageStart = virtualAddressFailure & 0xFFFFF000;
-	if (alreadySaved(pageStart)) {printf_pocho("Sali de saveSnapshotPage por el alreadyStart\n");return;}
+	if (alreadySaved(pageStart)) {printf_pochoTab(tabs,"Sali de saveSnapshotPage por el alreadyStart\n");return;}
 	unsigned long saved = computer.snapshot.pagesSaved;
 	computer.snapshot.pages[saved].virtualAddress = pageStart;
 	computer.snapshot.pages[saved].physicalAddress = pageStart;
@@ -179,7 +181,7 @@ void saveSnapshotPage(unsigned long virtualAddressFailure){
 	memcpy(computer.snapshot.pages[saved].contents, pageStart, 4096); 	
 	changeDirectoryToReadWrite(virtualAddressFailure);
 	computer.snapshot.pagesSaved = saved + 1;
-	printf_pocho("Sali de saveSnapshotPage\n");
+	printf_pochoTab(tabs,"Sali de saveSnapshotPage\n");
 }
 
 void changeDirectoryToReadWrite(unsigned long virtualAddressFailure){
