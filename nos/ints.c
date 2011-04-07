@@ -98,49 +98,100 @@ void clockISR() {
 	outb(0x20,0x20);
 }
 
+typedef struct VmStatus {
+	usqInt methodStatus,messageSelectorStatus,newMethodStatus;
+	sqInt receiverClassStatus,methodClassStatus,lkupClassStatus,newNativeMethodStatus,argumentCountStatus, successFlagStatus, primitiveIndexStatus;
+	void *primitiveFunctionPointerStatus;
+} VmStatus;
+
+void saveStatus(VmStatus *status){
+	extern usqInt method,messageSelector,newMethod;
+	extern sqInt receiver, receiverClass,methodClass,lkupClass,newNativeMethod,argumentCount,successFlag, primitiveIndex;
+	extern void *primitiveFunctionPointer;
+	status->messageSelectorStatus = messageSelector;
+	status->newMethodStatus = newMethod;
+	status->methodClassStatus = methodClass;
+	status->lkupClassStatus = lkupClass;
+	status->receiverClassStatus = receiverClass;
+	status->newNativeMethodStatus = newNativeMethod;
+	status->argumentCountStatus = argumentCount;
+	status->successFlagStatus = successFlag;
+	status->primitiveIndexStatus = primitiveIndex;
+	status->primitiveFunctionPointerStatus = primitiveFunctionPointer;
+	printf_pocho("Sali con: \n");
+	printStringOf(messageSelector);
+	printf_pocho("\n");
+	printNameOfClasscount(lkupClass,5);
+	printf_pocho("\n");
+	printNameOfClasscount(receiverClass,5);
+	printf_pocho("\n");
+}
+
+void releaseStatus(VmStatus *status){
+	extern usqInt method,messageSelector,newMethod;
+	extern sqInt receiver, receiverClass,methodClass,lkupClass,newNativeMethod,argumentCount,successFlag, primitiveIndex;
+	extern void *primitiveFunctionPointer;
+	printf_pocho("Volvi con: \n");
+	printStringOf(messageSelector);
+	printf_pocho("\n");
+	printNameOfClasscount(lkupClass,5);
+	printf_pocho("\n");
+	printNameOfClasscount(receiverClass,5);
+	printf_pocho("\n");
+	messageSelector = status->messageSelectorStatus;
+	newMethod = status->newMethodStatus;
+	methodClass = status->methodClassStatus;
+	lkupClass = status->lkupClassStatus;
+	receiverClass = status->receiverClassStatus;
+	newNativeMethod = status->newNativeMethodStatus;
+	argumentCount = status->argumentCountStatus;
+	successFlag = status->successFlagStatus;
+	primitiveIndex = status->primitiveIndexStatus;
+	primitiveFunctionPointer = status->primitiveFunctionPointerStatus;
+	printf_pocho("Retorno a: \n");
+	printStringOf(messageSelector);
+	printf_pocho("\n");
+	printNameOfClasscount(lkupClass,5);
+	printf_pocho("\n");
+	printNameOfClasscount(receiverClass,5);
+	printf_pocho("\n");
+}
+
 void pageFaultISR(unsigned long errorCode) {
 	extern Computer computer;
 	extern t_IRQSemaphores IRQSemaphores;
-	extern sqInt allocationCount;
-	extern sqInt allocationsBetweenGCs;
 	extern unsigned long tabs;
-	sqInt savedSuccessFlag;
-	extern sqInt successFlag;
-	savedSuccessFlag = successFlag;
-	unsigned long virtualAddressFailure, currentAllocationBetweenGCs;
-	//computer.inPageFault++;
+	unsigned long virtualAddressFailure;
+	computer.inPageFault++;
 	computer.totalPageFaults++;
 	asm volatile("movl %%cr2, %0" : "=a" (virtualAddressFailure));
-	currentAllocationBetweenGCs = allocationsBetweenGCs;
 	printf_pochoTab(tabs, "PageFaultISR: Entre\n");
 	tabs+=1;
-	printf_pochoTab(tabs,"PageFaultISR: Esta en la rootTable: %d\n",isInsideRootTable(virtualAddressFailure));	
+	printf_pochoTab(tabs,"PageFaultISR: Esta en la rootTable: %d\n",isInsideRootTable(virtualAddressFailure));
 	computer.pageFaultAddress = virtualAddressFailure;
+	sti();
 	if ((errorCode & 1) == 1){
 		// Protection page fault
-		if ((computer.snapshot.pagesSaved < computer.snapshot.pagesToSave) || (computer.inPageFault > 1)){
-			sti();
+		if ((computer.inPageFault > 1) || (computer.inGC)){
 			printf_pochoTab(tabs,"PageFaultISR: Paginas salvadas a mano: %d de %d \n",computer.snapshot.pagesSaved,computer.snapshot.pagesToSave);
-			printf_pochoTab(tabs,"PageFaultISR: Entre al pageFaultNativo en:%d, Allocations between: %d, Allocation count: %d!\n",virtualAddressFailure,allocationsBetweenGCs,allocationCount);
+			printf_pochoTab(tabs,"PageFaultISR: Entre al pageFaultNativo en:%d\n",virtualAddressFailure);
 			saveSnapshotPage(virtualAddressFailure);
 		} else {
+			VmStatus status;
 			signalSemaphoreWithIndex(IRQSemaphores[15]);
-			sti();
-			printf_pochoTab(tabs,"PageFaultISR: Entre al pageFaultCallback en:%d, Allocations between: %d, Allocation count: %d!\n",virtualAddressFailure,allocationsBetweenGCs,allocationCount);
-			allocationsBetweenGCs = 100000; /* set to high to ensure no incrementalGc */
+			printf_pochoTab(tabs,"PageFaultISR: Entre al pageFaultCallback en:%d\n",virtualAddressFailure);
+			saveStatus(&status);
 			computer.pageFaultHandler(virtualAddressFailure);
-			allocationsBetweenGCs = currentAllocationBetweenGCs;
+			releaseStatus(&status);
 		}
 	} else {
 		// page not present
-		sti();
 		signalSemaphoreWithIndex(IRQSemaphores[15]);
 		printf_pochoTab(tabs,"PageFaultISR: Inside a not present page fault");
 		computer.pageFaultHandler(virtualAddressFailure);
 	}
-	successFlag = savedSuccessFlag;
 	tabs-=1;
-	//computer.inPageFault--;
+	computer.inPageFault--;
 	printf_pochoTab(tabs,"PageFaultISR: Sali\n");
 }
 

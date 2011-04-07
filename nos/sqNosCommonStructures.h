@@ -2,6 +2,7 @@
 #define __SQNOS_COMMON_STRUCTURES_H__
 
 #include "multiboot.h"
+#include "sqMemoryAccess.h"
 
 // Video Mode Information
 typedef struct DisplayInfo {
@@ -30,6 +31,7 @@ typedef struct Computer {
 	unsigned long inPageFault;
 	unsigned long pageFaultAddress;
 	unsigned long totalPageFaults;
+	unsigned long inGC;
 } Computer;
 
 #endif  /* __SQNOS_COMMON_STRUCTURES_H__ */

@@ -61,6 +61,7 @@ void initializeComputer(unsigned long magic, multiboot_info_t *mbi)
 	// a variable we can query from the image by using a primitive	
 	computer.mbi = mbi;
 	computer.inPageFault = 0;
+	computer.inGC = 0;
 		/* Are mods_* valid?  */
 	if (magic == MULTIBOOT_BOOTLOADER_MAGIC)
 	{

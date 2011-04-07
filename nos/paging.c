@@ -77,6 +77,15 @@ void setTableReadOnly(unsigned int *pageTable, int firstIndex, int lastIndex)
 	
 }
 
+void setTableReadWrite(unsigned int *pageTable, int firstIndex, int lastIndex)
+{
+	int i;
+	//printf_pocho("");
+	for (i = firstIndex; i <= lastIndex; i++)
+		pageTable[i] = pageTable[i] | 0x00000002;
+	
+}
+
 void makeReadOnly(unsigned long from, unsigned long to){
 	printf_pochoTab(tabs,"Read only from: %d to: %d\n",from,to);
 	unsigned int *pageDirectory;
@@ -107,6 +116,38 @@ void makeReadOnly(unsigned long from, unsigned long to){
 	}
 	
 }
+
+void makeReadWrite(){
+	unsigned int *pageDirectory;
+
+	asm volatile("movl %%cr3, %0": "=a" (pageDirectory));
+
+	int i;
+	int from = 0;
+	int to = 300000000;
+	unsigned int firstDirIndex   = from / (1024 * 1024 * 4);
+	unsigned int lastDirIndex    = to   / (1024 * 1024 * 4);
+	unsigned int firstTableIndex = (from & 0x003FF000) >> 12;
+	unsigned int lastTableIndex  = (to   & 0x003FF000) >> 12;
+	
+	printf_pocho("Page Directory: %d\n,First table: %d, last table: %d,\n first entry in first table: %d, last entry in last table: %d\n",
+				pageDirectory, firstDirIndex, lastDirIndex, firstTableIndex, lastTableIndex);
+	
+	for (i = firstDirIndex; i <= lastDirIndex; i++)
+	{
+		unsigned int firstIndex = 0;
+		unsigned int lastIndex = 1023;
+		if (i == firstDirIndex)
+			firstIndex = firstTableIndex;
+		
+		if (i == lastDirIndex)
+			lastIndex = lastTableIndex;
+			
+		setTableReadWrite((unsigned int*)(pageDirectory[i] & 0xFFFFF000), firstIndex, lastIndex);
+	}
+	
+}
+
 
 usqInt getScheduler(){
 	extern sqInt specialObjectsOop;
